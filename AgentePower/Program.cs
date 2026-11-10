@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using Mscc.GenerativeAI;
+using Mscc.GenerativeAI.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,20 @@ string VerifyToken = Environment.GetEnvironmentVariable("VERIFY_TOKEN") ?? "Powe
 string MetaAccessToken = Environment.GetEnvironmentVariable("META_TOKEN") ?? "";
 string PhoneNumberId = Environment.GetEnvironmentVariable("PHONE_NUMBER_ID") ?? "1366071403267166";
 string WhatsAppApiUrl = $"https://graph.facebook.com/v20.0/{PhoneNumberId}/messages";
+
+// =========================================================================
+// System Prompt: Instrucciones de rol para el Agente de Ventas en Gemini
+// =========================================================================
+const string SystemPromptPowerElectriMK = """
+Eres el Agente Virtual de Ventas y Asesor Comercial oficial de 'Power ElectriMK', empresa líder en ingeniería eléctrica, distribución de materiales eléctricos de baja y media tensión, iluminación industrial, cableado, tableros de control y automatización.
+
+Tus objetivos son:
+1. Saludar cordialmente y con entusiasmo profesional al cliente en nombre de Power ElectriMK.
+2. Identificar qué producto, material o servicio eléctrico está buscando el cliente.
+3. Brindar asesoría técnica clara, concisa y orientada a la venta.
+4. Responder siempre en español, de forma breve y amigable (máximo 2 a 3 párrafos cortos), ideal para formato WhatsApp (usa negritas con *texto* y emojis con moderación).
+5. Si el cliente solicita una cotización formal o desea realizar una compra, invítalo a compartir su lista de materiales o datos de contacto (nombre y correo) e indícale que un asesor comercial humano se comunicará para formalizar su cotización.
+""";
 
 // =========================================================================
 // 1. ENDPOINT GET: Handshake de verificación con Meta
@@ -79,15 +95,17 @@ app.MapPost("/api/whatsapp/webhook", async (
                     if (message.Type == "text" && message.Text != null && !string.IsNullOrWhiteSpace(message.From))
                     {
                         var numeroCliente = message.From;
-                        var textoMensaje = message.Text.Body;
+                        var textoMensaje = message.Text.Body ?? string.Empty;
 
                         Console.WriteLine($"[NUEVO MENSAJE] De: {numeroCliente} - Texto: {textoMensaje}");
 
-                        // Invocar el motor de respuesta de WhatsApp
-                        await EnviarMensajeWhatsApp(
-                            numeroCliente,
-                            $"¡Hola! Soy el Agente virtual de Power ElectriMK. He recibido tu mensaje: '{textoMensaje}'. En qué te puedo ayudar?"
-                        );
+                        // 1. Consultar a Google Gemini con el mensaje del cliente
+                        var respuestaIa = await ConsultarGemini(textoMensaje);
+
+                        Console.WriteLine($"[RESPUESTA GEMINI IA] Para: {numeroCliente} - Respuesta: {respuestaIa}");
+
+                        // 2. Responder dinámicamente con la respuesta de la IA
+                        await EnviarMensajeWhatsApp(numeroCliente, respuestaIa);
                     }
                 }
             }
@@ -102,7 +120,45 @@ app.MapPost("/api/whatsapp/webhook", async (
     return Results.Ok();
 })
 .WithName("ReceiveWhatsAppEvent")
-.WithSummary("Recibe y procesa mensajes entrantes de WhatsApp");
+.WithSummary("Recibe y procesa mensajes entrantes de WhatsApp con IA");
+
+// =========================================================================
+// Función: Consultar a Google Gemini API
+// =========================================================================
+async Task<string> ConsultarGemini(string mensajeCliente)
+{
+    var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+
+    if (string.IsNullOrWhiteSpace(apiKey))
+    {
+        Console.WriteLine("[ERROR CRÍTICO] La variable 'GEMINI_API_KEY' no está configurada o está vacía.");
+        return "¡Hola! Gracias por comunicarte con Power ElectriMK. En este momento nuestro asesor virtual se encuentra en mantenimiento. En breve un asesor comercial te atenderá.";
+    }
+
+    try
+    {
+        var googleAi = new GoogleAI(apiKey: apiKey);
+        var model = googleAi.GenerativeModel(
+            model: "gemini-1.5-flash",
+            systemInstruction: new Content(SystemPromptPowerElectriMK, "system")
+        );
+
+        var response = await model.GenerateContent(mensajeCliente);
+        var respuestaTexto = response?.Text?.Trim();
+
+        if (string.IsNullOrWhiteSpace(respuestaTexto))
+        {
+            return "¡Hola! Gracias por comunicarte con Power ElectriMK. ¿En qué producto o material eléctrico te podemos asesorar hoy?";
+        }
+
+        return respuestaTexto;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[EXCEPCIÓN GEMINI API] Error al generar respuesta con IA: {ex.Message}");
+        return "¡Hola! Gracias por comunicarte con Power ElectriMK. Hemos recibido tu mensaje y enseguida un asesor de nuestro equipo se pondrá en contacto contigo.";
+    }
+}
 
 // =========================================================================
 // Función: Motor de respuesta para WhatsApp Cloud API
