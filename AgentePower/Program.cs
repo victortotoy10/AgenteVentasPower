@@ -32,7 +32,7 @@ string VerifyToken = Environment.GetEnvironmentVariable("VERIFY_TOKEN") ?? "Powe
 string MetaAccessToken = Environment.GetEnvironmentVariable("META_TOKEN") ?? "";
 string PhoneNumberId = Environment.GetEnvironmentVariable("PHONE_NUMBER_ID") ?? "1366071403267166";
 string WhatsAppApiUrl = $"https://graph.facebook.com/v20.0/{PhoneNumberId}/messages";
-string GeminiModelId = Environment.GetEnvironmentVariable("GEMINI_MODEL") ?? "gemini-2.0-flash";
+string GeminiModelId = Environment.GetEnvironmentVariable("GEMINI_MODEL") ?? "gemini-2.5-flash";
 
 // =========================================================================
 // System Prompt: Rol de Asesor Comercial para Power ElectriMK
@@ -178,7 +178,7 @@ async Task<string> ConsultarGemini(string numeroCliente, string mensajeCliente, 
 
         var promptCompleto = promptBuilder.ToString();
 
-        // 4. Invocar el modelo Gemini (por defecto gemini-2.0-flash)
+        // 4. Invocar el modelo Gemini (por defecto gemini-2.5-flash)
         var googleAi = new GoogleAI(apiKey: apiKey);
         var model = googleAi.GenerativeModel(
             model: GeminiModelId,
