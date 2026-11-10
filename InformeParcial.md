@@ -9,9 +9,9 @@ El servidor fue aprovisionado en una instancia de Amazon EC2. Se configuró el e
 
 Ruta del Proyecto: /var/www/AgenteVentasPower/AgentePower
 
-Repositorio Git: origin main (Actualizado con los últimos commits generados por la IA local "Antigravity").
+Repositorio Git: origin main (Blindado y gestionado mediante variables de entorno).
 
-Dirección IP Pública (AWS): 54.227.16.110
+Dirección IP Pública (AWS): [IP_PROTEGIDA_AWS]
 
 2. Compilación y Configuración del Servicio (Systemd)
 Para garantizar que la API se ejecute continuamente en segundo plano y se reinicie automáticamente ante fallas o reinicios del servidor, se configuró como un demonio del sistema operativo.
@@ -25,6 +25,11 @@ Parámetros del Servicio:
 Puerto interno: 5252 (ASPNETCORE_URLS=http://localhost:5252)
 
 Entorno: Producción (ASPNETCORE_ENVIRONMENT=Production)
+
+Variables de Entorno Ciberseguras:
+- VERIFY_TOKEN
+- PHONE_NUMBER_ID
+- META_TOKEN
 
 Usuario: ubuntu
 
@@ -41,7 +46,7 @@ Se creó un registro tipo A.
 
 Nombre: agente (Subdominio: agente.powerelectrimk.com).
 
-Destino: 54.227.16.110.
+Destino: [IP_PROTEGIDA_AWS].
 
 Estado del Proxy: Desactivado ("Solo DNS") para permitir la validación del certificado SSL.
 
@@ -67,20 +72,20 @@ El último paso de infraestructura fue el enlace ("Handshake") entre la API ofic
 
 Configuración del Webhook (Panel de Meta):
 
-URL de devolución de llamada: [https://agente.powerelectrimk.com/api/whatsapp/webhook](https://agente.powerelectrimk.com/api/whatsapp/webhook)
+URL de devolución de llamada: https://agente.powerelectrimk.com/api/whatsapp/webhook
 
-Token de verificación configurado en código: PowerElectriMK_Token_2026
+Token de verificación: Gestionado de forma segura mediante variable de entorno (VERIFY_TOKEN).
 
 Suscripciones: Se activó la suscripción al campo messages.
 
-Lógica C# de Procesamiento (Antigravity):
+Lógica C# de Procesamiento:
 
 Se desarrolló la estructura DTO para mapear el JSON complejo que envía Meta.
 
-La API ahora puede deserializar los eventos entrantes.
+La API deserializa los eventos entrantes y valida nulos para ignorar eventos de estado.
 
-Prueba en Vivo: Se envió un mensaje de prueba ("prueba de envio de mensaje") desde un dispositivo físico móvil (+593 96 869 9402) al número de pruebas de Meta.
+Prueba en Vivo: Se envió un mensaje de prueba ("prueba de envio de mensaje") desde un dispositivo móvil de pruebas (+[NUMERO_CLIENTE_PROTEGIDO]) al número de pruebas de Meta.
 
 Resultado de Validación (Journalctl): El monitor del servidor (Logs) confirmó la recepción exitosa y la extracción del número del cliente y del cuerpo del mensaje en texto plano.
 
-Estado Final de la Infraestructura: Fase 1 (Recepción y Arquitectura) completada al 100%. El servidor está listo para la Fase 2 (Implementación del motor de envío de respuestas y conexión con modelos de IA).
+Estado Final de la Infraestructura: Fases 1 y 2 completadas y blindadas bajo buenas prácticas de ciberseguridad.
