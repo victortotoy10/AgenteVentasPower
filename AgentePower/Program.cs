@@ -1,12 +1,15 @@
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Servicios base para documentación OpenAPI / Swagger
+// Servicios base para documentación OpenAPI / Swagger y cliente HTTP
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
@@ -18,8 +21,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Token de verificación configurado para Meta Developer Dashboard
+// =========================================================================
+// Constantes de configuración para WhatsApp Cloud API
+// =========================================================================
 const string VerifyToken = "PowerElectriMK_Token_2026";
+const string MetaAccessToken = "<AQUI_PONDRAN_EL_TOKEN>";
+const string WhatsAppApiUrl = "https://graph.facebook.com/v20.0/1366071403267166/messages";
 
 // =========================================================================
 // 1. ENDPOINT GET: Handshake de verificación con Meta
@@ -33,13 +40,10 @@ app.MapGet("/api/whatsapp/webhook", (
     if (mode == "subscribe" && token == VerifyToken)
     {
         logger.LogInformation("Verificación de webhook de WhatsApp completada con éxito.");
-        // Meta requiere explícitamente el 'challenge' devuelto en texto plano (text/plain) con HTTP 200
         return Results.Text(challenge);
     }
 
     logger.LogWarning("Intento de verificación fallido. Token o modo incorrecto. Mode: {Mode}, Token: {Token}", mode, token);
-    
-    // Retornamos 403 Forbidden explícito sin depender de esquemas de autenticación
     return Results.StatusCode(StatusCodes.Status403Forbidden);
 })
 .WithName("VerifyWhatsAppWebhook")
@@ -48,14 +52,12 @@ app.MapGet("/api/whatsapp/webhook", (
 // =========================================================================
 // 2. ENDPOINT POST: Recepción de eventos / mensajes de WhatsApp
 // =========================================================================
-app.MapPost("/api/whatsapp/webhook", (
+app.MapPost("/api/whatsapp/webhook", async (
     [FromBody] WhatsAppWebhookPayload? payload,
     ILogger<Program> logger) =>
 {
     try
     {
-        // Validamos la jerarquía completa del payload con null-checks para evitar caídas
-        // en eventos de estado (sent, delivered, read) o notificaciones sin mensajes
         var changes = payload?.Entry?
             .Where(e => e.Changes != null)
             .SelectMany(e => e.Changes!)
@@ -68,19 +70,23 @@ app.MapPost("/api/whatsapp/webhook", (
                 var messages = change.Value?.Messages;
                 if (messages == null || messages.Count == 0)
                 {
-                    // Ignoramos eventos de estado o cambios sin mensajes
                     continue;
                 }
 
                 foreach (var message in messages)
                 {
-                    // Validamos que sea un mensaje de texto real con remitente y contenido
                     if (message.Type == "text" && message.Text != null && !string.IsNullOrWhiteSpace(message.From))
                     {
                         var numeroCliente = message.From;
                         var textoMensaje = message.Text.Body;
 
                         Console.WriteLine($"[NUEVO MENSAJE] De: {numeroCliente} - Texto: {textoMensaje}");
+
+                        // Invocar el motor de respuesta de WhatsApp
+                        await EnviarMensajeWhatsApp(
+                            numeroCliente,
+                            $"¡Hola! Soy el Agente virtual de Power ElectriMK. He recibido tu mensaje: '{textoMensaje}'. En qué te puedo ayudar?"
+                        );
                     }
                 }
             }
@@ -91,11 +97,52 @@ app.MapPost("/api/whatsapp/webhook", (
         logger.LogError(ex, "Error al procesar el webhook entrante de WhatsApp.");
     }
 
-    // Meta exige responder con HTTP 200 inmediatamente para evitar reintentos automáticos
+    // Meta exige responder con HTTP 200 inmediatamente
     return Results.Ok();
 })
 .WithName("ReceiveWhatsAppEvent")
 .WithSummary("Recibe y procesa mensajes entrantes de WhatsApp");
+
+// =========================================================================
+// Función: Motor de respuesta para WhatsApp Cloud API
+// =========================================================================
+async Task EnviarMensajeWhatsApp(string numeroDestino, string mensajeBody)
+{
+    try
+    {
+        var httpClientFactory = app.Services.GetRequiredService<IHttpClientFactory>();
+        var httpClient = httpClientFactory.CreateClient();
+
+        var payload = new
+        {
+            messaging_product = "whatsapp",
+            to = numeroDestino,
+            type = "text",
+            text = new { body = mensajeBody }
+        };
+
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        using var request = new HttpRequestMessage(HttpMethod.Post, WhatsAppApiUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", MetaAccessToken);
+        request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        var response = await httpClient.SendAsync(request);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"[MENSAJE ENVIADO] A: {numeroDestino}");
+        }
+        else
+        {
+            Console.WriteLine($"[ERROR AL ENVIAR MENSAJE] Status: {response.StatusCode} - {responseContent}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[EXCEPCIÓN HTTP ENVIANDO MENSAJE] Error: {ex.Message}");
+    }
+}
 
 app.Run();
 
