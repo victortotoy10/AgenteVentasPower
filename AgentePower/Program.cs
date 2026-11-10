@@ -6,6 +6,28 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// =========================================================================
+// 0. VALIDACIÓN DE VARIABLES DE ENTORNO AL INICIAR LA APLICACIÓN
+// =========================================================================
+var verifyToken = Environment.GetEnvironmentVariable("VERIFY_TOKEN");
+var metaToken = Environment.GetEnvironmentVariable("META_TOKEN");
+var phoneNumberId = Environment.GetEnvironmentVariable("PHONE_NUMBER_ID");
+
+if (string.IsNullOrWhiteSpace(verifyToken))
+{
+    Console.WriteLine("[ERROR CRÍTICO] La variable de entorno 'VERIFY_TOKEN' no está configurada. El Webhook de Meta no podrá validarse.");
+}
+
+if (string.IsNullOrWhiteSpace(metaToken))
+{
+    Console.WriteLine("[ERROR CRÍTICO] La variable de entorno 'META_TOKEN' no está configurada. El envío de respuestas salientes fallará.");
+}
+
+if (string.IsNullOrWhiteSpace(phoneNumberId))
+{
+    Console.WriteLine("[ERROR CRÍTICO] La variable de entorno 'PHONE_NUMBER_ID' no está configurada. No se podrá construir la URL de Meta Graph API.");
+}
+
 // Servicios base para documentación OpenAPI / Swagger y cliente HTTP
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -22,12 +44,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // =========================================================================
-// Constantes de configuración para WhatsApp Cloud API
-// =========================================================================
-const string VerifyToken = "PowerElectriMK_Token_2026";
-const string WhatsAppApiUrl = "https://graph.facebook.com/v20.0/1366071403267166/messages";
-
-// =========================================================================
 // 1. ENDPOINT GET: Handshake de verificación con Meta
 // =========================================================================
 app.MapGet("/api/whatsapp/webhook", (
@@ -36,13 +52,21 @@ app.MapGet("/api/whatsapp/webhook", (
     [FromQuery(Name = "hub.challenge")] string? challenge,
     ILogger<Program> logger) =>
 {
-    if (mode == "subscribe" && token == VerifyToken)
+    var currentVerifyToken = Environment.GetEnvironmentVariable("VERIFY_TOKEN");
+
+    if (string.IsNullOrWhiteSpace(currentVerifyToken))
+    {
+        logger.LogError("[ERROR CRÍTICO] La variable 'VERIFY_TOKEN' no está configurada en el servidor.");
+        return Results.StatusCode(StatusCodes.Status500InternalServerError);
+    }
+
+    if (mode == "subscribe" && token == currentVerifyToken)
     {
         logger.LogInformation("Verificación de webhook de WhatsApp completada con éxito.");
         return Results.Text(challenge);
     }
 
-    logger.LogWarning("Intento de verificación fallido. Token o modo incorrecto. Mode: {Mode}, Token: {Token}", mode, token);
+    logger.LogWarning("Intento de verificación fallido. Token o modo incorrecto. Mode: {Mode}", mode);
     return Results.StatusCode(StatusCodes.Status403Forbidden);
 })
 .WithName("VerifyWhatsAppWebhook")
@@ -81,7 +105,7 @@ app.MapPost("/api/whatsapp/webhook", async (
 
                         Console.WriteLine($"[NUEVO MENSAJE] De: {numeroCliente} - Texto: {textoMensaje}");
 
-                        // Invocar el motor de respuesta de WhatsApp
+                        // Responder siempre de manera dinámica al número del cliente entrante
                         await EnviarMensajeWhatsApp(
                             numeroCliente,
                             $"¡Hola! Soy el Agente virtual de Power ElectriMK. He recibido tu mensaje: '{textoMensaje}'. En qué te puedo ayudar?"
@@ -109,14 +133,22 @@ async Task EnviarMensajeWhatsApp(string numeroDestino, string mensajeBody)
 {
     try
     {
-        // Lectura segura del token desde variables de entorno
-        var metaToken = Environment.GetEnvironmentVariable("META_TOKEN");
+        var token = Environment.GetEnvironmentVariable("META_TOKEN");
+        var phoneId = Environment.GetEnvironmentVariable("PHONE_NUMBER_ID");
 
-        if (string.IsNullOrWhiteSpace(metaToken))
+        if (string.IsNullOrWhiteSpace(token))
         {
-            Console.WriteLine("[ERROR CRÍTICO] La variable de entorno 'META_TOKEN' no está configurada o está vacía. No se realizará la petición HTTP.");
+            Console.WriteLine("[ERROR CRÍTICO] La variable 'META_TOKEN' no está configurada o está vacía. No se realizará la petición HTTP.");
             return;
         }
+
+        if (string.IsNullOrWhiteSpace(phoneId))
+        {
+            Console.WriteLine("[ERROR CRÍTICO] La variable 'PHONE_NUMBER_ID' no está configurada o está vacía. No se realizará la petición HTTP.");
+            return;
+        }
+
+        var apiUrl = $"https://graph.facebook.com/v20.0/{phoneId}/messages";
 
         var httpClientFactory = app.Services.GetRequiredService<IHttpClientFactory>();
         var httpClient = httpClientFactory.CreateClient();
@@ -130,8 +162,8 @@ async Task EnviarMensajeWhatsApp(string numeroDestino, string mensajeBody)
         };
 
         var jsonPayload = JsonSerializer.Serialize(payload);
-        using var request = new HttpRequestMessage(HttpMethod.Post, WhatsAppApiUrl);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", metaToken);
+        using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
         var response = await httpClient.SendAsync(request);
