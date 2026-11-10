@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,15 +49,87 @@ app.MapGet("/api/whatsapp/webhook", (
 // 2. ENDPOINT POST: Recepción de eventos / mensajes de WhatsApp
 // =========================================================================
 app.MapPost("/api/whatsapp/webhook", (
-    [FromBody] JsonElement? payload,
+    [FromBody] WhatsAppWebhookPayload? payload,
     ILogger<Program> logger) =>
 {
-    // Meta exige responder con HTTP 200 en menos de 3 segundos para evitar reintentos automáticos
-    logger.LogInformation("Evento de WhatsApp recibido exitosamente: {Payload}", payload?.ToString());
+    try
+    {
+        // Validamos la jerarquía completa del payload con null-checks para evitar caídas
+        // en eventos de estado (sent, delivered, read) o notificaciones sin mensajes
+        var changes = payload?.Entry?
+            .Where(e => e.Changes != null)
+            .SelectMany(e => e.Changes!)
+            .ToList();
 
+        if (changes != null && changes.Count > 0)
+        {
+            foreach (var change in changes)
+            {
+                var messages = change.Value?.Messages;
+                if (messages == null || messages.Count == 0)
+                {
+                    // Ignoramos eventos de estado o cambios sin mensajes
+                    continue;
+                }
+
+                foreach (var message in messages)
+                {
+                    // Validamos que sea un mensaje de texto real con remitente y contenido
+                    if (message.Type == "text" && message.Text != null && !string.IsNullOrWhiteSpace(message.From))
+                    {
+                        var numeroCliente = message.From;
+                        var textoMensaje = message.Text.Body;
+
+                        Console.WriteLine($"[NUEVO MENSAJE] De: {numeroCliente} - Texto: {textoMensaje}");
+                    }
+                }
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al procesar el webhook entrante de WhatsApp.");
+    }
+
+    // Meta exige responder con HTTP 200 inmediatamente para evitar reintentos automáticos
     return Results.Ok();
 })
 .WithName("ReceiveWhatsAppEvent")
-.WithSummary("Recibe notificaciones de mensajes y estados de entrega");
+.WithSummary("Recibe y procesa mensajes entrantes de WhatsApp");
 
 app.Run();
+
+// =========================================================================
+// Modelos DTO (Data Transfer Objects) para WhatsApp Cloud API Webhook
+// =========================================================================
+public record WhatsAppWebhookPayload(
+    [property: JsonPropertyName("object")] string? Object,
+    [property: JsonPropertyName("entry")] List<WhatsAppEntry>? Entry
+);
+
+public record WhatsAppEntry(
+    [property: JsonPropertyName("id")] string? Id,
+    [property: JsonPropertyName("changes")] List<WhatsAppChange>? Changes
+);
+
+public record WhatsAppChange(
+    [property: JsonPropertyName("value")] WhatsAppValue? Value,
+    [property: JsonPropertyName("field")] string? Field
+);
+
+public record WhatsAppValue(
+    [property: JsonPropertyName("messaging_product")] string? MessagingProduct,
+    [property: JsonPropertyName("messages")] List<WhatsAppMessage>? Messages
+);
+
+public record WhatsAppMessage(
+    [property: JsonPropertyName("from")] string? From,
+    [property: JsonPropertyName("id")] string? Id,
+    [property: JsonPropertyName("timestamp")] string? Timestamp,
+    [property: JsonPropertyName("type")] string? Type,
+    [property: JsonPropertyName("text")] WhatsAppText? Text
+);
+
+public record WhatsAppText(
+    [property: JsonPropertyName("body")] string? Body
+);
