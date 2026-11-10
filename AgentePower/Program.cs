@@ -5,13 +5,15 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Mscc.GenerativeAI;
 using Mscc.GenerativeAI.Types;
+using AgentePower;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Servicios base para documentación OpenAPI / Swagger y cliente HTTP
+// Servicios base para documentación OpenAPI / Swagger, cliente HTTP y Base de Datos SQLite
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<DatabaseService>();
 
 var app = builder.Build();
 
@@ -32,17 +34,20 @@ string PhoneNumberId = Environment.GetEnvironmentVariable("PHONE_NUMBER_ID") ?? 
 string WhatsAppApiUrl = $"https://graph.facebook.com/v20.0/{PhoneNumberId}/messages";
 
 // =========================================================================
-// System Prompt: Instrucciones de rol para el Agente de Ventas en Gemini
+// System Prompt: Rol de Asesor Comercial para Power ElectriMK
 // =========================================================================
 const string SystemPromptPowerElectriMK = """
-Eres el Agente Virtual de Ventas y Asesor Comercial oficial de 'Power ElectriMK', empresa líder en ingeniería eléctrica, distribución de materiales eléctricos de baja y media tensión, iluminación industrial, cableado, tableros de control y automatización.
+Eres el Asesor Comercial y Agente Virtual de Ventas oficial de 'Power ElectriMK', empresa distribuidora de materiales eléctricos de alta calidad y soluciones de ingeniería eléctrica en baja y media tensión.
 
-Tus objetivos son:
-1. Saludar cordialmente y con entusiasmo profesional al cliente en nombre de Power ElectriMK.
-2. Identificar qué producto, material o servicio eléctrico está buscando el cliente.
-3. Brindar asesoría técnica clara, concisa y orientada a la venta.
-4. Responder siempre en español, de forma breve y amigable (máximo 2 a 3 párrafos cortos), ideal para formato WhatsApp (usa negritas con *texto* y emojis con moderación).
-5. Si el cliente solicita una cotización formal o desea realizar una compra, invítalo a compartir su lista de materiales o datos de contacto (nombre y correo) e indícale que un asesor comercial humano se comunicará para formalizar su cotización.
+Manejamos más de 10 marcas líderes en el mercado, tales como: Schneider Electric, Legrand, Bticino, Centelsa, Siemens, ABB, 3M, Philips, Sylvania y Prysmian.
+
+Tus pautas de atención comercial:
+1. Saluda cordialmente en nombre de Power ElectriMK.
+2. Si se te proporcionan datos de inventario o productos de nuestro catálogo, úsalos para responder precios, referencias y características técnicas con total precisión.
+3. Toma en cuenta el historial reciente de la conversación para no pedirle al cliente que repita lo que ya dijo.
+4. Responde en español, de forma breve, concisa y persuasiva (máximo 2 a 3 párrafos cortos), ideal para formato WhatsApp (usa negritas con *texto* y emojis amigables con moderación).
+5. Para compras o cotizaciones formales por volumen, invita al cliente a facilitar su lista de cantidades, nombre y correo para que un ejecutivo comercial formalice la proforma.
+6. Si el cliente busca una marca o producto que no figura en la lista sugerida, indícale amablemente que sí trabajamos bajo pedido con las principales marcas del país y ofrece canalizarlo con un asesor.
 """;
 
 // =========================================================================
@@ -67,10 +72,11 @@ app.MapGet("/api/whatsapp/webhook", (
 .WithSummary("Valida el webhook frente a Meta WhatsApp Cloud API");
 
 // =========================================================================
-// 2. ENDPOINT POST: Recepción de eventos / mensajes de WhatsApp
+// 2. ENDPOINT POST: Recepción de eventos con Memoria y Catálogo
 // =========================================================================
 app.MapPost("/api/whatsapp/webhook", async (
     [FromBody] WhatsAppWebhookPayload? payload,
+    DatabaseService dbService,
     ILogger<Program> logger) =>
 {
     try
@@ -99,12 +105,12 @@ app.MapPost("/api/whatsapp/webhook", async (
 
                         Console.WriteLine($"[NUEVO MENSAJE] De: {numeroCliente} - Texto: {textoMensaje}");
 
-                        // 1. Consultar a Google Gemini con el mensaje del cliente
-                        var respuestaIa = await ConsultarGemini(textoMensaje);
+                        // Consultar a Gemini alimentándolo con memoria conversacional y catálogo de marcas
+                        var respuestaIa = await ConsultarGemini(numeroCliente, textoMensaje, dbService);
 
                         Console.WriteLine($"[RESPUESTA GEMINI IA] Para: {numeroCliente} - Respuesta: {respuestaIa}");
 
-                        // 2. Responder dinámicamente con la respuesta de la IA
+                        // Responder al cliente por WhatsApp
                         await EnviarMensajeWhatsApp(numeroCliente, respuestaIa);
                     }
                 }
@@ -120,12 +126,12 @@ app.MapPost("/api/whatsapp/webhook", async (
     return Results.Ok();
 })
 .WithName("ReceiveWhatsAppEvent")
-.WithSummary("Recibe y procesa mensajes entrantes de WhatsApp con IA");
+.WithSummary("Recibe y procesa mensajes con IA, memoria y catálogo");
 
 // =========================================================================
-// Función: Consultar a Google Gemini API
+// Función: Consultar a Google Gemini con Contexto RAG y Memoria de Chat
 // =========================================================================
-async Task<string> ConsultarGemini(string mensajeCliente)
+async Task<string> ConsultarGemini(string numeroCliente, string mensajeCliente, DatabaseService dbService)
 {
     var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
 
@@ -137,19 +143,58 @@ async Task<string> ConsultarGemini(string mensajeCliente)
 
     try
     {
+        // 1. Recuperar los últimos 6 mensajes del cliente (Memoria Conversacional)
+        var historial = await dbService.GetRecentHistoryAsync(numeroCliente, limit: 6);
+
+        // 2. Buscar productos coincidentes en el Catálogo de 10 Marcas (RAG Local)
+        var productos = await dbService.SearchProductsAsync(mensajeCliente, limit: 4);
+
+        // 3. Ensamblar el Prompt Enriquecido para Gemini
+        var promptBuilder = new StringBuilder();
+
+        if (historial.Count > 0)
+        {
+            promptBuilder.AppendLine("[HISTORIAL RECIENTE CON EL CLIENTE]");
+            foreach (var h in historial)
+            {
+                var actor = h.Role == "user" ? "Cliente" : "Asesor (Tú)";
+                promptBuilder.AppendLine($"{actor}: {h.Message}");
+            }
+            promptBuilder.AppendLine();
+        }
+
+        if (productos.Count > 0)
+        {
+            promptBuilder.AppendLine("[PRODUCTOS DE POWER ELECTRIMK COINCIDENTES EN INVENTARIO]");
+            foreach (var p in productos)
+            {
+                promptBuilder.AppendLine($"- [{p.Brand}] {p.Name} (Cód: {p.Code}) | Categoría: {p.Category} | Ref: ${p.Price:F2} /{p.Unit} | Detalle: {p.Description}");
+            }
+            promptBuilder.AppendLine();
+        }
+
+        promptBuilder.AppendLine($"Cliente (Mensaje actual): {mensajeCliente}");
+
+        var promptCompleto = promptBuilder.ToString();
+
+        // 4. Invocar el modelo Gemini 1.5 Flash
         var googleAi = new GoogleAI(apiKey: apiKey);
         var model = googleAi.GenerativeModel(
             model: "gemini-1.5-flash",
             systemInstruction: new Content(SystemPromptPowerElectriMK, "system")
         );
 
-        var response = await model.GenerateContent(mensajeCliente);
+        var response = await model.GenerateContent(promptCompleto);
         var respuestaTexto = response?.Text?.Trim();
 
         if (string.IsNullOrWhiteSpace(respuestaTexto))
         {
-            return "¡Hola! Gracias por comunicarte con Power ElectriMK. ¿En qué producto o material eléctrico te podemos asesorar hoy?";
+            respuestaTexto = "¡Hola! Gracias por comunicarte con Power ElectriMK. ¿En qué producto o material eléctrico te podemos asesorar hoy?";
         }
+
+        // 5. Guardar la conversación en SQLite para persistir la memoria
+        await dbService.SaveMessageAsync(numeroCliente, "user", mensajeCliente);
+        await dbService.SaveMessageAsync(numeroCliente, "model", respuestaTexto);
 
         return respuestaTexto;
     }
