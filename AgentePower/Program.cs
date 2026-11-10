@@ -25,7 +25,6 @@ app.UseHttpsRedirection();
 // Constantes de configuración para WhatsApp Cloud API
 // =========================================================================
 const string VerifyToken = "PowerElectriMK_Token_2026";
-const string MetaAccessToken = "<AQUI_PONDRAN_EL_TOKEN>";
 const string WhatsAppApiUrl = "https://graph.facebook.com/v20.0/1366071403267166/messages";
 
 // =========================================================================
@@ -110,6 +109,15 @@ async Task EnviarMensajeWhatsApp(string numeroDestino, string mensajeBody)
 {
     try
     {
+        // Lectura segura del token desde variables de entorno
+        var metaToken = Environment.GetEnvironmentVariable("META_TOKEN");
+
+        if (string.IsNullOrWhiteSpace(metaToken))
+        {
+            Console.WriteLine("[ERROR CRÍTICO] La variable de entorno 'META_TOKEN' no está configurada o está vacía. No se realizará la petición HTTP.");
+            return;
+        }
+
         var httpClientFactory = app.Services.GetRequiredService<IHttpClientFactory>();
         var httpClient = httpClientFactory.CreateClient();
 
@@ -123,7 +131,7 @@ async Task EnviarMensajeWhatsApp(string numeroDestino, string mensajeBody)
 
         var jsonPayload = JsonSerializer.Serialize(payload);
         using var request = new HttpRequestMessage(HttpMethod.Post, WhatsAppApiUrl);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", MetaAccessToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", metaToken);
         request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
         var response = await httpClient.SendAsync(request);
