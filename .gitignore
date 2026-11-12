@@ -3,8 +3,32 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-# dotenv files
+# dotenv and sensitive files
 .env
+.env.*
+*.env
+!.env.example
+*.key
+*.pem
+*.secret
+
+# LaTeX build artifacts and temporary files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.nav
+*.snm
+*.vrb
+
 
 # User-specific files
 *.rsuser

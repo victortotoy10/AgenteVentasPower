@@ -1,0 +1,72 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% 10. PRESUPUESTO DEL PROYECTO DE TITULACIÓN
+% Formato APA 7 estricto (booktabs, sin líneas verticales)
+% =========================================================================
+\section{Presupuesto del Proyecto de Titulación}
+
+El presupuesto estimado para la ejecución integral del proyecto de titulación considera tanto la valoración formal del esfuerzo de ingeniería de software (mano de obra de los tesistas), como el dimensionamiento técnico de la infraestructura computacional en la nube, conectividad, licencias de consumo y suministros requeridos para el ciclo de vida del software. En la Tabla \ref{tab:presupuesto} se expone la valoración económica formal del proyecto, cuantificada conforme a precios de mercado y aranceles profesionales de desarrollo.
+
+\begin{table}[H]
+\centering
+\caption{Presupuesto detallado y valoración económica del proyecto de titulación}
+\label{tab:presupuesto}
+\begin{tabular}{p{5.2cm} p{6.8cm} r}
+\toprule
+\textbf{Categoría / Rubro} & \textbf{Descripción y dedicación del recurso} & \textbf{Costo (USD)} \\
+\midrule
+\multicolumn{3}{l}{\textbf{1. Mano de obra de ingeniería y desarrollo (Tesistas)}} \\
+Victor Jesús Totoy Iza & Arquitectura backend (.NET 8), webhooks y despliegue (200 h a \$10.00/h) & 2000.00 \\
+Rodolfo Damián Seminario Murillo & Esquema relacional SQLite, orquestación Gemini y pruebas (200 h a \$10.00/h) & 2000.00 \\
+\midrule
+\multicolumn{2}{l}{\textit{Subtotal Mano de obra de ingeniería}} & \textit{4000.00} \\
+\midrule
+\multicolumn{3}{l}{\textbf{2. Infraestructura tecnológica, servicios y suministros directos}} \\
+Servidor en la nube (AWS EC2) & Instancia virtual Linux (t2.micro) durante 6 meses de proyecto & 60.00 \\
+Nombre de dominio y gestión TLS & Dominio \texttt{powerelectrimk.com} y gestión de DNS Cloudflare (1 año) & 15.00 \\
+Consumo de inferencia API Gemini & Cuota de tokens para pruebas de integración y validación ($N=50$) & 40.00 \\
+Línea telefónica comercial & Tarjeta SIM y recargas para WhatsApp Business API & 25.00 \\
+Servicio de acceso a Internet & Conectividad fija de banda ancha durante 6 meses (\$30.00/mes) & 180.00 \\
+Impresión y encuadernación & Empastado y documentación física institucional de titulación & 70.00 \\
+Fondo de contingencia & Margen para imprevistos operativos y pruebas adicionales (10\%) & 40.00 \\
+\midrule
+\multicolumn{2}{l}{\textit{Subtotal Infraestructura y suministros}} & \textit{430.00} \\
+\midrule
+\textbf{Total general valorado del proyecto} & & \textbf{4430.00} \\
+\bottomrule
+\end{tabular}
+\notatabla{Valores expresados en dólares de los Estados Unidos de América (USD). La tarifa horaria de 10.00 USD/h se fundamenta en los valores referenciales de mercado para desarrolladores de software junior en Ecuador. Los costos directos de infraestructura y servicios (430.00 USD) y la mano de obra de investigación (4000.00 USD) son asumidos íntegramente por los autores.}
+\end{table}
+
+Como se expone en la Tabla \ref{tab:presupuesto}, el costo consolidado del proyecto asciende a 4430.00 USD. De este valor, el 90.3\% (4000.00 USD) corresponde a la mano de obra de ingeniería aportada por los tesistas (Victor Jesús Totoy Iza y Rodolfo Damián Seminario Murillo), cuantificada en 400 horas de dedicación conjunta (200 horas individuales) a una tarifa estandarizada de 10.00 USD por hora, representando la inversión de capital humano inherente a la formación en ingeniería en computación. 
+
+Por otra parte, desde la perspectiva operativa y financiera de la puesta en marcha, el proyecto exhibe una ventaja competitiva excepcional gracias al aprovechamiento estratégico de las \textbf{capas gratuitas} (\textit{Free Tiers}) ofrecidas por los principales proveedores tecnológicos de nube e inteligencia artificial. Durante la etapa de investigación, desarrollo y validación experimental, los costos computacionales de la nube y de la API de inferencia se reducen de forma efectiva a 0.00 USD. En la Tabla \ref{tab:costos_operativos_reales} se presenta el análisis comparativo entre los límites operativos de la Capa Gratuita y la estructura tarifaria de pago (\textit{Pay-as-you-go}) para cuando la empresa distribuidora Power Electrimk decida escalar la solución a régimen comercial masivo.
+
+\begin{table}[H]
+\centering
+\caption{Análisis operativo de servicios de nube: Capa Gratuita vs. Régimen Comercial de Pago}
+\label{tab:costos_operativos_reales}
+\small
+\begin{tabular}{p{2.8cm} p{4.0cm} p{4.2cm} r}
+\toprule
+\textbf{Proveedor / Servicio} & \textbf{Capa Gratuita (Free Tier)} & \textbf{Régimen Comercial (Pay-as-you-go)} & \textbf{Gasto Fase Tesis} \\
+\midrule
+\textbf{Google Gemini API} \newline (Google AI Studio) & 15 RPM, 1\,000\,000 TPM y hasta 1\,500 solicitudes/día gratuitas (\textit{Flash}). & Entrada: \$0.075 / 1M tokens. \newline Salida: \$0.30 / 1M tokens ($\approx$ \$2.50/mes por 1\,000 chats/día). & 0.00 \\
+\addlinespace
+\textbf{Amazon Web Services} \newline (AWS EC2 t2.micro) & 750 horas/mes gratuitas durante 12 meses; 30 GB almacenamiento SSD EBS gp3. & On-Demand: \$0.0116/h ($\approx$ \$8.35/mes) + \$2.40/mes almacenamiento EBS gp3. & 0.00 \\
+\addlinespace
+\textbf{Meta Cloud API} \newline (WhatsApp Business) & 1\,000 conversaciones de servicio al cliente al mes gratuitas iniciadas por usuario. & Tarifa variable por categoría de conversación ($\approx$ \$0.008 a \$0.035 USD/chat tras superar 1\,000). & 0.00 \\
+\addlinespace
+\textbf{Let's Encrypt / Certbot} \newline (Certificado TLS 1.3) & Certificados criptográficos SSL/TLS automatizados de renovación continua (100\% gratis). & Certificados comerciales corporativos con validación de organización (\$15.00 a \$60.00/año). & 0.00 \\
+\addlinespace
+\textbf{Dominio y DNS} \newline (Cloudflare / Namecheap) & DNS seguro gratuito en Cloudflare; registro de dominio de pago. & Renovación anual de dominio comercial powerelectrimk.com a precio de mercado. & 15.00 \\
+\addlinespace
+\textbf{Conectividad fija} \newline (Proveedor local) & No aplica capa gratuita comercial. & Tarifa residencial/comercial mensual de banda ancha simétrica (\$30.00/mes $\times$ 6 meses). & 180.00 \\
+\midrule
+\multicolumn{3}{l}{\textbf{Desembolso directo real de infraestructura en fase de investigación}} & \textbf{195.00} \\
+\bottomrule
+\end{tabular}
+\notatabla{Datos oficiales recopilados de la documentación técnica y tablas de facturación de Google Cloud / Google AI Studio (2026), Amazon Web Services Free Tier y Meta for Developers. El gasto real de 195.00 USD demuestra la alta viabilidad financiera del proyecto para su validación en la distribuidora Power Electrimk.}
+\end{table}
+
+Este análisis evidencia que la combinación de un motor embebido SQLite (modo WAL sin costo de licenciamiento) con la Capa Gratuita de Google AI Studio y el AWS Free Tier minimiza el riesgo de inversión para la distribuidora Power Electrimk, requiriendo un desembolso directo de únicamente 195.00 USD durante los seis meses de ejecución del proyecto de titulación. Si la distribuidora decidiera extender la solución a un volumen comercial de alta demanda superando los límites de la capa gratuita, el esquema de cobro por consumo de Gemini Flash garantiza que el costo mensual de inferencia por cada 1\,000 cotizaciones atendidas no excederá los 3.00 USD, lo cual consolida la sostenibilidad económica y el retorno de inversión del sistema frente a plataformas propietarias de alto costo recurrente.

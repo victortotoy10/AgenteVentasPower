@@ -1,0 +1,25 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% ÍNDICES (general, figuras y tablas) a espacio sencillo y sin numeración
+% =========================================================================
+\begin{singlespace}
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+\tableofcontents
+\newpage
+
+\addtocontents{lof}{\protect\thispagestyle{empty}}
+\listoffigures
+\newpage
+
+\addtocontents{lot}{\protect\thispagestyle{empty}}
+\listoftables
+\end{singlespace}
+\newpage
+
+% --- Numeración arábiga en la esquina superior derecha (APA 7) ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\setcounter{page}{1}
+\pagenumbering{arabic}

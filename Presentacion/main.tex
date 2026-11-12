@@ -1,0 +1,600 @@
+% !TeX program = pdflatex
+% !TeX encoding = UTF-8
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+% --- Paquetes de Idioma y Tipografía ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc,fit}
+
+% --- Colores Institucionales UPS ---
+\definecolor{UPSBlue}{RGB}{0, 51, 102}        % Azul UPS
+\definecolor{UPSYellow}{RGB}{235, 160, 0}     % Amarillo/Dorado UPS
+\definecolor{UPSLightBlue}{RGB}{235, 243, 252} % Azul tenue para bloques
+\definecolor{DarkGray}{RGB}{60, 64, 67}
+\definecolor{LightGray}{RGB}{245, 247, 250}
+\definecolor{SuccessGreen}{RGB}{34, 139, 34}
+\definecolor{AlertRed}{RGB}{180, 40, 40}
+
+% --- Configuración del Tema Beamer ---
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\setbeamercolor{palette primary}{bg=UPSBlue, fg=white}
+\setbeamercolor{palette secondary}{bg=UPSBlue!85, fg=white}
+\setbeamercolor{palette tertiary}{bg=UPSBlue!70, fg=white}
+\setbeamercolor{palette quaternary}{bg=UPSBlue, fg=white}
+\setbeamercolor{structure}{fg=UPSBlue}
+\setbeamercolor{titlelike}{parent=palette primary}
+\setbeamercolor{frametitle}{bg=UPSBlue, fg=white}
+\setbeamercolor{block title}{bg=UPSBlue, fg=white}
+\setbeamercolor{block body}{bg=UPSLightBlue, fg=DarkGray}
+\setbeamercolor{block title example}{bg=SuccessGreen, fg=white}
+\setbeamercolor{block body example}{bg=SuccessGreen!10, fg=DarkGray}
+\setbeamercolor{block title alerted}{bg=AlertRed, fg=white}
+\setbeamercolor{block body alerted}{bg=AlertRed!10, fg=DarkGray}
+
+\setbeamertemplate{navigation symbols}{} % Quitar controles innecesarios
+\setbeamertemplate{caption}[numbered]
+
+% Pie de página institucional personalizado
+\setbeamertemplate{footline}{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}V. Totoy y R. Seminario
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}Anteproyecto de Titulación - UPS
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}Guayaquil, 2026 \hspace*{2em}
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+% --- Metadatos Oficiales (Fieles al Anteproyecto) ---
+\title[Agente Comercial para Materiales Eléctricos]{Desarrollo de un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil}
+\subtitle{Sustentación de Anteproyecto de Titulación}
+\author[Totoy \& Seminario]{%
+  Victor Jesus Totoy Iza \and Rodolfo Damián Seminario Murillo
+}
+\institute[UPS Guayaquil]{
+  \textbf{Tutor:} Ing. Joe Llerena Izquierdo, M.Sc., Ph.D. \\[0.2cm]
+  Universidad Politécnica Salesiana --- Sede Guayaquil \\
+  Carrera de Computación
+}
+\date{Noviembre 2026}
+\titlegraphic{\includegraphics[height=1.2cm]{images/Logo_UPS.png}}
+
+% =========================================================================
+% INICIO DEL DOCUMENTO
+% =========================================================================
+\begin{document}
+
+% --- Slide 1: Carátula ---
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% --- Slide 2: Agenda Institucional ---
+\begin{frame}{Estructura de la Exposición}
+  \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+      \begin{enumerate}
+        \item \textbf{Contexto Comercial y Problemática}
+        \item \textbf{Diagnóstico Causal (Árbol 5W+H)}
+        \item \textbf{Objetivos de Titulación}
+        \item \textbf{Marco Hipotético de Investigación}
+        \item \textbf{Estado del Arte y Brecha Científica}
+        \item \textbf{Arquitectura de Software Propuesta}
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{enumerate}
+        \setcounter{enumi}{6}
+        \item \textbf{Metodología de Desarrollo (5 Fases)}
+        \item \textbf{Protocolo Experimental y Métricas P69}
+        \item \textbf{Cronograma de Hitos Académicos}
+        \item \textbf{Presupuesto y Análisis de Nube}
+        \item \textbf{Vinculación GIEACI y Criterios ABET}
+        \item \textbf{Escalabilidad Tecnológica (Roadmap)}
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+  
+  \vspace{0.35cm}
+  \begin{block}{Alineación Normativa UPS}
+    Todos los datos, métricas, valores y plazos expuestos en esta presentación son estrictamente concordantes con el documento oficial de Anteproyecto de Titulación presentado ante la Carrera de Computación.
+  \end{block}
+\end{frame}
+
+% --- Slide 3: Contexto y Diagnóstico ---
+\begin{frame}{Contexto Operativo: Distribuidora Power Electrimk}
+  \begin{columns}
+    \begin{column}{0.54\textwidth}
+      \textbf{El Escenario Comercial (Anteproyecto Sec. 2):}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+        \item Distribuidora en Guayaquil orientada a contratistas, instaladores y empresas de ingeniería eléctrica.
+        \item Comercialización multimarca: \textit{Schneider Electric, Siemens, Legrand, Centelsa, Phelps Dodge, Bticino, ABB, Veto}.
+        \item Canal principal de captación y venta técnica: \textbf{WhatsApp}.
+      \end{itemize}
+      
+      \vspace{0.15cm}
+      \textbf{El Cuello de Botella Operativo:}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+        \item Consultas manuales en catálogos PDF dispersos y hojas de precios.
+        \item Tiempos de espera: \textbf{2 a 8 horas hábiles} por cotización.
+        \item Pérdida directa de oportunidades: \textbf{20\% a 35\%} de solicitudes por fuga de prospectos hacia competidores.
+      \end{itemize}
+    \end{column}
+    
+    \begin{column}{0.43\textwidth}
+      \begin{alertblock}{Riesgo Operativo Severo}
+        \footnotesize
+        En suministros eléctricos, alucinar un calibre, curva de disparo o precio acarrea \textbf{riesgos de siniestros técnicos (cortocircuitos) o pérdidas financieras directas}.
+      \end{alertblock}
+      
+      \begin{block}{Restricciones de Ingeniería (ABET 1)}
+        \scriptsize
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item \textbf{Latencia:} $\le 4.0$ segundos de respuesta E2E.
+          \item \textbf{Hardware:} Instancia virtual $\le 1$ GB RAM, 1 vCPU.
+          \item \textbf{Privacidad:} Cumplimiento LOPDP y TLS 1.3.
+          \item \textbf{Exactitud:} Tolerancia de error fáctico nula (0\%).
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 4: Árbol de Problemas (5W+H) ---
+\begin{frame}{Diagnóstico Causal: Árbol de Problemas (Metodología 5W+H)}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.72, transform shape,
+      effect/.style={rectangle, draw=AlertRed!80, fill=AlertRed!10, rounded corners=3pt, text width=4.3cm, minimum height=1.2cm, align=center, inner sep=4pt, font=\scriptsize},
+      cause/.style={rectangle, draw=UPSBlue!80, fill=UPSBlue!10, rounded corners=3pt, text width=4.3cm, minimum height=1.2cm, align=center, inner sep=4pt, font=\scriptsize},
+      central/.style={rectangle, draw=AlertRed, fill=AlertRed!20, rounded corners=4pt, text width=13.6cm, minimum height=1.1cm, align=center, inner sep=5pt, font=\bfseries\scriptsize},
+      arrow/.style={-{Stealth[length=2.5mm]}, thick, DarkGray}
+    ]
+      % Efectos (Nivel 1 - Arriba) - Exacto al Anexo 1 del documento
+      \node[effect] (e1) at (-4.7, 2.3) {\textbf{Efecto 1}\\[2pt]Pérdida de prospectos calificados por demoras en respuesta en WhatsApp ($> 15$ min)};
+      \node[effect] (e2) at (0, 2.3) {\textbf{Efecto 2}\\[2pt]Discrepancias e inconsistencias en cotizaciones manuales de precios y códigos};
+      \node[effect] (e3) at (4.7, 2.3) {\textbf{Efecto 3}\\[2pt]Sobrecarga operativa del personal comercial en consultas técnicas rutinarias};
+      
+      % Problema Central (Nivel 2 - Centro)
+      \node[central] (prob) at (0, 0.5) {PROBLEMA CENTRAL\\Baja eficiencia operativa, demoras en el tiempo de atención y riesgo de errores de cotización en el asesoramiento comercial de materiales eléctricos por mensajería instantánea};
+      
+      % Causas (Nivel 3 - Abajo) - Exacto al Anexo 1 del documento
+      \node[cause] (c1) at (-4.7, -1.3) {\textbf{Causa Macro}\\[2pt]Creciente demanda de atención digital omnicanal 24/7 sin ampliación de personal};
+      \node[cause] (c2) at (0, -1.3) {\textbf{Causa Meso}\\[2pt]Dispersión de catálogos técnicos multimarca en formatos heterogéneos no estructurados};
+      \node[cause] (c3) at (4.7, -1.3) {\textbf{Causa Micro}\\[2pt]Dependencia de consulta manual en listas impresas o archivos PDF durante el chat};
+      
+      % Conexiones Causas -> Problema
+      \draw[arrow] (c1.north) -- ([xshift=-4.7cm]prob.south);
+      \draw[arrow] (c2.north) -- (prob.south);
+      \draw[arrow] (c3.north) -- ([xshift=4.7cm]prob.south);
+      
+      % Conexiones Problema -> Efectos
+      \draw[arrow] ([xshift=-4.7cm]prob.north) -- (e1.south);
+      \draw[arrow] (prob.north) -- (e2.south);
+      \draw[arrow] ([xshift=4.7cm]prob.north) -- (e3.south);
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+% --- Slide 5: Objetivos del Proyecto ---
+\begin{frame}{Objetivos de Titulación (Taxonomía de Bloom)}
+  \begin{block}{Objetivo General (Anteproyecto Sec. 4)}
+    \textbf{Desarrollar} un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, mediante la integración de modelos generativos y recuperación relacional determinista sobre catálogos técnicos para garantizar cotizaciones fácticas en la distribuidora Power Electrimk.
+  \end{block}
+  
+  \vspace{0.15cm}
+  \textbf{Objetivos Específicos:}
+  \begin{itemize}\footnotesize\setlength{\itemsep}{3pt}
+    \item[\textbf{O1.}] \textbf{Analizar} los requerimientos operativos de atención comercial y la estructura de los catálogos técnicos multimarca en la distribuidora Power Electrimk, determinando los atributos esenciales de inventario y las especificaciones de ingeniería requeridas para el agente de ventas.
+    \item[\textbf{O2.}] \textbf{Implementar} un prototipo de software en arquitectura ligera sobre .NET 8 que integre de forma desacoplada la API oficial de WhatsApp Cloud, el modelo fundacional Gemini y un motor de base de datos embebido SQLite con registro en modo Write-Ahead Logging para consultas deterministas y persistencia de memoria de sesión comercial.
+    \item[\textbf{O3.}] \textbf{Evaluar} el desempeño computacional y la efectividad operativa del prototipo mediante pruebas experimentales controladas que contrasten el agente con recuperación local frente al modelo sin recuperación, cuantificando la exactitud de precios y referencias técnicas, la tasa de mitigación de alucinaciones, la latencia en percentil P95 y el consumo de recursos en la nube.
+  \end{itemize}
+\end{frame}
+
+% --- Slide 6: Preguntas e Hipótesis de Investigación ---
+\begin{frame}{Marco Hipotético e Hipótesis de Ingeniería (Anteproyecto Sec. 5)}
+  \begin{columns}[t]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Pregunta General (PG)}
+        \scriptsize
+        ¿En qué medida un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, basado en modelos generativos y recuperación relacional determinista, mejora la exactitud de precios, la latencia de respuesta y la eficiencia de recursos computacionales en el proceso de ventas de la distribuidora Power Electrimk?
+      \end{block}
+      
+      \vspace{0.05cm}
+      {\footnotesize \textbf{Subproblemas Específicos:}}
+      \begin{itemize}\scriptsize\setlength{\itemsep}{2pt}
+        \item[\textbf{P1.}] ¿Qué estructura relacional normalizada multimarca soporta consultas deterministas de inventario?
+        \item[\textbf{P2.}] ¿Cómo orquestar WhatsApp, Gemini y SQLite WAL en .NET 8 con memoria contenida?
+        \item[\textbf{P3.}] ¿En qué medida la recuperación local mitiga la alucinación y optimiza la latencia P95?
+      \end{itemize}
+    \end{column}
+    
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Hipótesis General (HG)}
+        \scriptsize
+        La implementación del agente inteligente con recuperación fáctica local sobre SQLite permite alcanzar una \textbf{exactitud fáctica $\ge 95\%$}, \textbf{tasa de alucinación del $0\%$}, \textbf{latencia P95 $< 4.0$ s} y memoria RAM \textbf{$< 250$ MB} en la nube.
+      \end{exampleblock}
+      
+      \vspace{0.05cm}
+      {\footnotesize \textbf{Hipótesis Específicas:}}
+      \begin{itemize}\scriptsize\setlength{\itemsep}{2pt}
+        \item[\textbf{H1.}] Consultas SQL indexadas resueltas en $T_{\text{sql}} < 100$ ms con 100\% de integridad.
+        \item[\textbf{H2.}] Procesamiento asíncrono en .NET 8 con utilización de RAM $< 250$ MB.
+        \item[\textbf{H3.}] Tasa de alucinación significativamente menor ($H_{\text{rate}} = 0\%$, $p < 0{,}05$) y $Acc_{\text{cot}} \ge 95\%$ vs. modelo sin RAG.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 7: Brecha Científica y Estado del Arte ---
+\begin{frame}{Estado del Arte y Revisión Sistemática (Anteproyecto Tabla 1)}
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{table}[H]
+    \centering
+    \tiny
+    \begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{4.2cm}}
+      \toprule
+      \textbf{Autor} & \textbf{Técnica base} & \textbf{Ventajas identificadas} & \textbf{Limitaciones operativas} \\
+      \midrule
+      Adamopoulou y Moussiades (2020) & Árboles de decisión y patrones regex & Respuestas deterministas y predecibles & Rigidez ante variaciones de lenguaje natural. \\
+      \addlinespace
+      Adam et al. (2021) & Chatbot con señales antropomórficas & Alta aceptación y fluidez de usuario & Carece de verificación de datos técnicos y precios. \\
+      \addlinespace
+      Wang et al. (2024) & Agentes autónomos basados en LLM & Comprensión semántica flexible y herramientas & Alucinaciones factuales en cotizaciones exactas. \\
+      \addlinespace
+      Lewis et al. (2020); Gao et al. (2023) & RAG tradicional con base vectorial & Anclaje de respuestas a documentos extensos & Alto consumo de RAM/GPU y búsqueda inexacta. \\
+      \addlinespace
+      Wu et al. (2023) & Orquestación multiagente distribuida & Resolución colaborativa de tareas complejas & Alta latencia acumulada y costos prohibitivos. \\
+      \addlinespace
+      \textbf{Propuesta Actual} & \textbf{RAG determinista sobre SQLite WAL} & \textbf{Exactitud 100\% en precios, latencia $< 4$ s} & \textbf{Alojado en AWS EC2 t2.micro (1 GB RAM, Capa Free)}. \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  
+  \vspace{0.05cm}
+  \begin{block}{Aporte Científico y Tecnológico}
+    \scriptsize
+    Desacoplamiento entre la memoria paramétrica del LLM (Gemini) y la fuente fáctica de verdad (SQLite WAL relacional), eliminando la alucinación probabilística en cotizaciones comerciales críticas.
+  \end{block}
+\end{frame}
+
+% --- Slide 8: Arquitectura de Software ---
+\begin{frame}{Arquitectura de Software y Flujo de Procesamiento (Anexo 3)}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.82, transform shape,
+      comp/.style={rectangle, draw=UPSBlue, fill=UPSLightBlue, rounded corners=4pt, text width=2.8cm, align=center, inner sep=5pt, font=\footnotesize},
+      cloudcomp/.style={rectangle, draw=SuccessGreen!80, fill=SuccessGreen!10, rounded corners=4pt, text width=2.8cm, align=center, inner sep=5pt, font=\footnotesize},
+      dbcomp/.style={cylinder, shape border rotate=90, draw=UPSBlue, fill=UPSYellow!20, aspect=0.25, text width=2.4cm, align=center, inner sep=4pt, font=\footnotesize},
+      arrow/.style={-{Stealth[length=2.5mm]}, thick, UPSBlue}
+    ]
+      % Fila Superior: Borde y Red
+      \node[comp] (user) at (-4.2, 1.8) {\textbf{Cliente Técnico}\\[2pt]WhatsApp Móvil / Web};
+      \node[cloudcomp] (wa) at (0, 1.8) {\textbf{Meta WhatsApp}\\[2pt]Cloud API (v21.0)};
+      \node[comp] (nginx) at (4.2, 1.8) {\textbf{Nginx Proxy}\\[2pt]TLS 1.3 / Certbot\\[1pt]{\fontsize{6}{7}\selectfont agente.powerelectrimk.com}};
+      
+      % Fila Inferior: Procesamiento Local y Cloud LLM
+      \node[cloudcomp] (gemini) at (-4.2, -0.7) {\textbf{Google Gemini 1.5}\\[2pt]Inferencia Flash\\[1pt]Free Tier / API};
+      \node[dbcomp] (sqlite) at (0, -0.7) {\textbf{SQLite (WAL)}\\[2pt]Catálogo 10 marcas\\[1pt]Historial sesiones};
+      \node[comp, fill=UPSYellow!30] (kestrel) at (4.2, -0.7) {\textbf{Backend .NET 8}\\[2pt]Kestrel (Puerto 5252)\\[1pt]Systemd: agenteventas};
+      
+      % Conexiones de Entrada
+      \draw[arrow] (user) -- node[above, font=\tiny]{1. Mensaje} (wa);
+      \draw[arrow] (wa) -- node[above, font=\tiny]{2. Webhook HTTPS} (nginx);
+      \draw[arrow] (nginx) -- node[right, font=\tiny]{3. Proxy} (kestrel);
+      
+      % Conexiones Backend a Datos y LLM
+      \draw[arrow] (kestrel) -- node[above, font=\tiny]{4. Búsqueda SQL} (sqlite);
+      \draw[arrow] (sqlite) -- node[above, font=\tiny]{5. Ground Truth} (gemini);
+      \draw[arrow, dashed] (gemini) to[bend left=20] node[below, font=\tiny]{6. Cotización verificada} (kestrel);
+      
+      % Retorno hacia WhatsApp
+      \draw[arrow, dashed] (kestrel) -- node[right, font=\tiny]{7. POST} (nginx);
+      \draw[arrow, dashed] (nginx) -- node[below, font=\tiny]{8. Send Message} (wa);
+      \draw[arrow, dashed] (wa) -- node[below, font=\tiny]{9. Entrega} (user);
+    \end{tikzpicture}
+  \end{center}
+  
+  \vspace{-0.1cm}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{Puntos Clave de Ingeniería:}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+        \item Firma criptográfica HMAC-SHA256 en webhooks de Meta.
+        \item Base SQLite embebida: cero sobrecarga de red interproceso.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+        \item Modo WAL (\textit{Write-Ahead Logging}): lecturas y escrituras sin bloqueo.
+        \item AWS EC2 t2.micro (Ubuntu 24.04.5 LTS, Capa Gratuita).
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 9: Metodología y Cronograma de Hitos ---
+\begin{frame}{Metodología de Desarrollo en 5 Fases y Cronograma de Hitos}
+  \begin{columns}[t]
+    \begin{column}{0.19\textwidth}
+      \begin{block}{\centering Fase 1 (70h)}
+        \scriptsize
+        \textbf{Revisión y Requisitos}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Literatura científica.
+          \item Catálogos Power Electrimk.
+        \end{itemize}
+        \vspace{2pt}
+        \textbf{Hito 1 (25\%):} 21/12/2026
+      \end{block}
+    \end{column}
+    \begin{column}{0.19\textwidth}
+      \begin{block}{\centering Fase 2 (70h)}
+        \scriptsize
+        \textbf{Diseño Arquitectura}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Modelo E-R SQLite.
+          \item Contratos JSON y prompts.
+        \end{itemize}
+        \vspace{2pt}
+        \textbf{Hito 2 (50\%):} 25/01/2027
+      \end{block}
+    \end{column}
+    \begin{column}{0.19\textwidth}
+      \begin{block}{\centering Fase 3 (100h)}
+        \scriptsize
+        \textbf{Implementación}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Backend C\# .NET 8.
+          \item WhatsApp y Gemini.
+        \end{itemize}
+        \vspace{2pt}
+        \textbf{Hito 3 (75\%):} 01/03/2027
+      \end{block}
+    \end{column}
+    \begin{column}{0.19\textwidth}
+      \begin{block}{\centering Fase 4 (60h)}
+        \scriptsize
+        \textbf{Despliegue y Pruebas}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item AWS EC2 + TLS Certbot.
+          \item Batería $N=50$ pruebas.
+        \end{itemize}
+        \vspace{2pt}
+        \textbf{Fin Pruebas:} 19/03/2027
+      \end{block}
+    \end{column}
+    \begin{column}{0.19\textwidth}
+      \begin{block}{\centering Fase 5 (60h)}
+        \scriptsize
+        \textbf{Análisis y Cierre}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Análisis estadístico R.
+          \item Documento de grado.
+        \end{itemize}
+        \vspace{2pt}
+        \textbf{Hito 4 (100\%):} 05/04/2027
+      \end{block}
+    \end{column}
+  \end{columns}
+  
+  \vspace{0.3cm}
+  \begin{exampleblock}{Carga Horaria Reglamentaria (Anteproyecto Sec. 8)}
+    \footnotesize
+    $360\text{ horas de ejecución técnica} + 40\text{ horas de contingencia (10\%)} = \mathbf{400\text{ horas reglamentarias}}$ de dedicación estudiantil conjunta ($200\text{ horas}$ por tesista).
+  \end{exampleblock}
+\end{frame}
+
+% --- Slide 10: Protocolo Experimental y Métricas ---
+\begin{frame}{Protocolo Experimental y Resultados Medibles (Matriz P69)}
+  \begin{columns}[t]
+    \begin{column}{0.49\textwidth}
+      \textbf{Diseño Cuasi-Experimental (Anteproyecto Sec. 7):}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+        \item Batería de $N = 50$ consultas estructuradas de cotización:
+          \begin{enumerate}\scriptsize
+            \item Código exacto de parte (e.g., \texttt{DOM12124}).
+            \item Por especificación técnica (e.g., \textit{disyuntor 20A curva C}).
+            \item Por categoría de material (cables, contactores).
+            \item Solicitudes multimarca combinadas.
+          \end{enumerate}
+        \item \textbf{Grupo Control:} Inferencia Gemini directa sin RAG local.
+        \item \textbf{Grupo Experimental:} Agente con SQLite WAL embebido.
+      \end{itemize}
+    \end{column}
+    
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Métricas e Indicadores Prioritarios (P69)}
+        \scriptsize
+        \setlength{\tabcolsep}{3pt}
+        \renewcommand{\arraystretch}{0.92}
+        \begin{tabular}{p{3.2cm} p{2.8cm}}
+          \toprule
+          \textbf{Métrica} & \textbf{Umbral Objetivo} \\
+          \midrule
+          Exactitud cotización ($Acc_{\text{cot}}$) & $\ge 95.0\%$ \\
+          Tasa de alucinación ($H_{\text{rate}}$) & $0.0\%$ fáctico \\
+          Latencia de respuesta P95 & $< 4.0\text{ segundos}$ \\
+          Tiempo consulta SQL ($T_{\text{sql}}$) & $< 100\text{ ms}$ \\
+          Memoria RAM del proceso & $< 250\text{ MB}$ \\
+          Ocupación CPU en AWS EC2 & $< 30\%$ \\
+          Significancia estadística & $p < 0{,}05$ \\
+          \bottomrule
+        \end{tabular}
+      \end{block}
+      
+      \vspace{0.05cm}
+      \begin{exampleblock}{Contrastación de Hipótesis}
+        \scriptsize
+        Prueba de t de Student / Wilcoxon para verificar la superioridad estadística de la arquitectura propuesta en exactitud y eliminación de errores.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 11: Presupuesto y Viabilidad Económica ---
+\begin{frame}{Presupuesto y Análisis Financiero de Nube (Anteproyecto Sec. 10)}
+  \begin{columns}[t]
+    \begin{column}{0.51\textwidth}
+      \textbf{Presupuesto Valorado del Proyecto (Tabla 5):}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+        \item \textbf{Mano de obra especializada (2 Tesistas):}
+          \begin{itemize}\scriptsize
+            \item Victor Jesus Totoy Iza: 200 h $\times$ \$10.00 = \textbf{\$2,000.00}
+            \item Rodolfo Damián Seminario: 200 h $\times$ \$10.00 = \textbf{\$2,000.00}
+            \item \textit{Subtotal Mano de Obra: \$4,000.00 (aporte tesistas)}
+          \end{itemize}
+        \item \textbf{Infraestructura y suministros:} \textbf{\$430.00}
+          \begin{itemize}\scriptsize
+            \item AWS EC2: \$60.00 \quad Dominio/TLS: \$15.00 \quad Gemini: \$40.00
+            \item SIM WhatsApp: \$25.00 \quad Internet: \$180.00 \quad Empastado: \$70.00
+            \item Fondo de contingencia (10\%): \$40.00
+          \end{itemize}
+        \item \textbf{Total General Valorado:} \textbf{\$4,430.00 USD}.
+      \end{itemize}
+      
+      \vspace{0.1cm}
+      \begin{exampleblock}{Alta Viabilidad Económica}
+        \scriptsize
+        Desembolso real de únicamente \textbf{\$195.00 USD} en fase de tesis; y en régimen comercial, costo mensual $\approx$ \textbf{\$16.00/mes}.
+      \end{exampleblock}
+    \end{column}
+    
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Capa Gratuita vs. Régimen Productivo (Tabla 6)}
+        \scriptsize
+        \setlength{\tabcolsep}{2.5pt}
+        \renewcommand{\arraystretch}{0.95}
+        \begin{tabular}{p{2.3cm} p{1.6cm} p{1.5cm}}
+          \toprule
+          \textbf{Servicio Cloud} & \textbf{Capa Free} & \textbf{Fase Tesis} \\
+          \midrule
+          Google Gemini Flash & 1\,500 req/día & \$0.00 \\
+          AWS EC2 t2.micro & 750 h/mes (12 m) & \$0.00 \\
+          Meta WhatsApp API & 1\,000 conv/mes & \$0.00 \\
+          Let's Encrypt TLS & Ilimitado gratis & \$0.00 \\
+          Dominio powerelectrimk & Registro anual & \$15.00 \\
+          Conectividad local & 6 meses (\$30/m) & \$180.00 \\
+          \midrule
+          \textbf{Gasto Real Directo} & & \textbf{\$195.00} \\
+          \bottomrule
+        \end{tabular}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 12: Vinculación con Investigación y ABET ---
+\begin{frame}{Vinculación con Investigación y Criterios ABET (Sec. 9 y Anexo 4)}
+  \begin{columns}[t]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Adhesión a Proyecto Institucional UPS}
+        \footnotesize
+        Proyecto formalmente articulado al \textbf{Grupo de Investigación GIEACI} (*Grupo de Investigación en Enseñanza-Aprendizaje de las Ciencias para la Ingeniería*):
+        \begin{itemize}\scriptsize\setlength{\itemsep}{2pt}
+          \item \textbf{Proyecto vinculado:} \textit{«Percepciones y dilemas éticos de estudiantes de Ingeniería frente al uso de IA generativa en el aprendizaje»}.
+          \item \textbf{Línea de investigación:} \textit{Integración de Tecnologías Emergentes en la Educación en Ingeniería y Sistemas Inteligentes}.
+          \item Aporta evidencia sobre mitigación de alucinaciones y ética algorítmica.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Criterios Internacionales ABET}
+        \footnotesize
+        \begin{itemize}\scriptsize\setlength{\itemsep}{3pt}
+          \item \textbf{ABET Criterio 1 (Diseño en Ingeniería):}
+            Solución sujeta a 4 restricciones formales (latencia $<4$ s, RAM $<250$ MB, costo mensual $<\$15$, privacidad LOPDP).
+          \item \textbf{ABET Criterio IV.3 (Ética y Transparencia):}
+            \begin{itemize}\tiny
+              \item Repositorio de código abierto (Licencia MIT en GitHub):\\
+              \url{https://github.com/vtotoy/agente-ventas-power}
+              \item Anonimización irreversible de números de teléfono mediante UUIDs para acatar la Ley Orgánica de Protección de Datos Personales (LOPDP).
+            \end{itemize}
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 13: Escalabilidad Tecnológica (Roadmap) ---
+\begin{frame}{Evolución del Producto: Arquitectura Modular y Extensible}
+  \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+      \textbf{Principios de Diseño de Software (SOLID):}
+      \begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+        \item \textbf{Desacoplamiento mediante Interfaces C\#:}
+          \begin{itemize}\scriptsize
+            \item \texttt{ICatalogSearchService}: permite búsquedas SQL textuales o por visión artificial.
+            \item \texttt{IHumanHandoffService}: gestiona estados de escalamiento a asesor comercial.
+            \item \texttt{ICrmSyncService}: exporta transacciones a CRM de forma asíncrona.
+          \end{itemize}
+        \item \textbf{State Pattern para Sesiones de WhatsApp:}
+          \begin{itemize}\scriptsize
+            \item \texttt{BotState.AutomatedQuote} $\rightarrow$ \texttt{BotState.HumanAssistance}.
+          \end{itemize}
+      \end{itemize}
+    \end{column}
+    
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Roadmap Modular Post-Titulación (Fase 2)}
+        \scriptsize
+        \begin{enumerate}\setlength{\itemsep}{1pt}
+          \item \textbf{Visión Multimodal:} Reconocimiento de piezas y disyuntores por foto usando Gemini 1.5 Flash Vision.
+          \item \textbf{Pase Asistido a Humano:} Transferencia automática ante consultas complejas o pedidos de alto volumen.
+          \item \textbf{Seguimiento Comercial (Follow-up):} Recordatorio automatizado a las 24--48 horas.
+          \item \textbf{Integración CRM:} Conexión bidireccional vía Webhooks REST.
+        \end{enumerate}
+      \end{block}
+      
+      \vspace{0.05cm}
+      \begin{alertblock}{Delimitación Académica del Anteproyecto}
+        \scriptsize
+        El núcleo evaluable de las 400 horas es el agente fáctico en SQLite WAL; estos 4 módulos forman la estrategia de transferibilidad tecnológica.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide 14: Conclusiones y Defensa ---
+\begin{frame}{Conclusiones de la Propuesta de Titulación}
+  \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Impacto Práctico en Power Electrimk}
+        \begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+          \item \textbf{Atención Inmediata 24/7:} Reducción del tiempo de respuesta de horas a menos de 4.0 segundos.
+          \item \textbf{Cero Pérdida de Prospectos:} Captura sistemática de cotizaciones fuera de jornada comercial.
+          \item \textbf{Cero Alucinación Fáctica:} Blindaje total contra errores en precios, códigos y marcas.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Rigor Metodológico y Académico}
+        \begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+          \item \textbf{Consistencia Metodológica P69:} Problema, objetivos, hipótesis e indicadores estricta y cuantitativamente alineados.
+          \item \textbf{Viabilidad Financiera Comprobada:} Gasto real en tesis de \$195.00 y operación comercial de \$16/mes.
+          \item \textbf{Aporte a la Ingeniería:} Desacoplamiento de LLM y base relacional local en hardware restringido.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  
+  \vspace{0.35cm}
+  \begin{center}
+    {\large \textbf{¡Muchas gracias por su atención!}} \\[0.15cm]
+    \textbf{Preguntas y Comentarios del Tribunal Evaluador}
+  \end{center}
+\end{frame}
+
+\end{document}

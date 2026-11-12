@@ -1,0 +1,269 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% 12. ANEXOS (Árbol 5W+H, Matriz de Consistencia P69, Arquitectura, GitHub)
+% =========================================================================
+\newpage
+\section{Anexos}
+
+% -------------------------------------------------------------------------
+% ANEXO 1: ÁRBOL DE PROBLEMAS Y ÁRBOL DE OBJETIVOS (5W+H)
+% -------------------------------------------------------------------------
+\subsection{Anexo 1: Árbol de problemas y objetivos (Metodología 5W+H)}
+
+De acuerdo con la guía metodológica de formulación de proyectos 5W+H de la Universidad Politécnica Salesiana, se presentan en la Figura \ref{fig:arbol_problemas} y la Figura \ref{fig:arbol_objetivos} las representaciones causales del problema central y su transformación propositiva hacia los medios y fines de la solución técnica.
+
+\begin{figure}[H]
+    \centering
+    \caption{Árbol de problemas de la atención comercial en distribuidoras eléctricas}
+    \label{fig:arbol_problemas}
+    \begin{tikzpicture}[
+        caja_efecto/.style={rectangle, rounded corners=3pt, draw=red!70!black, fill=red!6,
+                            text width=4.7cm, minimum height=1.35cm, align=center, font=\scriptsize},
+        caja_problema/.style={rectangle, rounded corners=4pt, draw=red!80!black, fill=red!18,
+                              text width=14.9cm, minimum height=1.35cm, align=center, font=\small\bfseries},
+        caja_causa/.style={rectangle, rounded corners=3pt, draw=blue!70!black, fill=blue!6,
+                           text width=4.7cm, minimum height=1.35cm, align=center, font=\scriptsize},
+        flecha/.style={-{Stealth[length=2.5mm]}, thick, gray!80}
+    ]
+        % Nivel 1: Efectos (arriba)
+        \node[caja_efecto] (e2) {Efecto 2\\Discrepancias e inconsistencias en cotizaciones manuales de precios y códigos.};
+        \node[caja_efecto, left=0.4cm of e2] (e1) {Efecto 1\\Pérdida de prospectos calificados por demoras en respuesta en WhatsApp (> 15 min).};
+        \node[caja_efecto, right=0.4cm of e2] (e3) {Efecto 3\\Sobrecarga operativa del personal comercial en consultas técnicas rutinarias.};
+
+        % Nivel 2: Problema central (centro)
+        \node[caja_problema, below=1.2cm of e2] (prob) {PROBLEMA CENTRAL\\Baja eficiencia operativa, demoras en el tiempo de atención y riesgo de errores de cotización en el asesoramiento comercial de materiales eléctricos por mensajería instantánea};
+
+        % Nivel 3: Causas (abajo)
+        \node[caja_causa, below=1.2cm of prob] (c2) {Causa Meso\\Dispersión de catálogos técnicos multimarca en formatos heterogéneos no estructurados.};
+        \node[caja_causa, left=0.4cm of c2] (c1) {Causa Macro\\Creciente demanda de atención digital omnicanal 24/7 sin ampliación de personal.};
+        \node[caja_causa, right=0.4cm of c2] (c3) {Causa Micro\\Dependencia de consulta manual en listas impresas o archivos PDF durante el chat.};
+
+        % Flechas causas -> problema
+        \draw[flecha] (c1.north) -- ([xshift=-5.1cm]prob.south);
+        \draw[flecha] (c2.north) -- (prob.south);
+        \draw[flecha] (c3.north) -- ([xshift=5.1cm]prob.south);
+
+        % Flechas problema -> efectos
+        \draw[flecha] ([xshift=-5.1cm]prob.north) -- (e1.south);
+        \draw[flecha] (prob.north) -- (e2.south);
+        \draw[flecha] ([xshift=5.1cm]prob.north) -- (e3.south);
+    \end{tikzpicture}
+    \notatabla{Estructura causal del problema identificada a través de la metodología 5W+H en la distribuidora Power Electrimk.}
+\end{figure}
+
+\newpage
+
+\begin{figure}[H]
+    \centering
+    \caption{Árbol de objetivos de la solución de ingeniería de software}
+    \label{fig:arbol_objetivos}
+    \begin{tikzpicture}[
+        caja_fin/.style={rectangle, rounded corners=3pt, draw=green!60!black, fill=green!6,
+                         text width=4.7cm, minimum height=1.35cm, align=center, font=\scriptsize},
+        caja_obj/.style={rectangle, rounded corners=4pt, draw=green!70!black, fill=green!18,
+                         text width=14.9cm, minimum height=1.35cm, align=center, font=\small\bfseries},
+        caja_medio/.style={rectangle, rounded corners=3pt, draw=blue!70!black, fill=blue!6,
+                          text width=4.7cm, minimum height=1.35cm, align=center, font=\scriptsize},
+        flecha/.style={-{Stealth[length=2.5mm]}, thick, gray!80}
+    ]
+        % Nivel 1: Fines (arriba)
+        \node[caja_fin] (f2) {Fin 2\\Exactitud fáctica garantizada en cotizaciones mediante consulta relacional oficial.};
+        \node[caja_fin, left=0.4cm of f2] (f1) {Fin 1\\Retención de prospectos y atención inmediata en menos de 4.0 segundos en WhatsApp.};
+        \node[caja_fin, right=0.4cm of f2] (f3) {Fin 3\\Liberación de tiempo del equipo de ventas para negociaciones de alto volumen.};
+
+        % Nivel 2: Objetivo central (centro)
+        \node[caja_obj, below=1.2cm of f2] (obj) {PROPÓSITO CENTRAL\\Desarrollar un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil};
+
+        % Nivel 3: Medios (abajo)
+        \node[caja_medio, below=1.2cm of obj] (m2) {Medio 2\\Normalización e indexación del catálogo multimarca en base embebida SQLite con WAL.};
+        \node[caja_medio, left=0.4cm of m2] (m1) {Medio 1\\Integración asíncrona de WhatsApp Cloud API sobre microservicio ligero en .NET 8.};
+        \node[caja_medio, right=0.4cm of m2] (m3) {Medio 3\\Orquestación RAG determinista combinada con inferencia contextual en Gemini.};
+
+        % Flechas medios -> objetivo
+        \draw[flecha] (m1.north) -- ([xshift=-5.1cm]obj.south);
+        \draw[flecha] (m2.north) -- (obj.south);
+        \draw[flecha] (m3.north) -- ([xshift=5.1cm]obj.south);
+
+        % Flechas objetivo -> fines
+        \draw[flecha] ([xshift=-5.1cm]obj.north) -- (f1.south);
+        \draw[flecha] (obj.north) -- (f2.south);
+        \draw[flecha] ([xshift=5.1cm]obj.north) -- (f3.south);
+    \end{tikzpicture}
+    \notatabla{Transformación de medios y fines orientada a la ingeniería de software y la validación experimental.}
+\end{figure}
+
+% -------------------------------------------------------------------------
+% ANEXO 2: MATRIZ DE CONSISTENCIA METODOLÓGICA (UPS P69)
+% -------------------------------------------------------------------------
+\begin{landscape}
+\subsection{Anexo 2: Matriz de consistencia metodológica de la investigación}
+
+En la Tabla \ref{tab:matriz_consistencia} se detalla la Matriz de Consistencia Metodológica elaborada bajo el formato normativo institucional UPS P69, evidenciando la coherencia entre problemas, objetivos, hipótesis, variables e indicadores.
+
+\begin{table}[H]
+\centering
+\caption{Matriz de consistencia metodológica de la investigación (Formato Institucional UPS P69)}
+\label{tab:matriz_consistencia}
+\scriptsize
+\begin{tabular}{p{4.2cm} p{4.2cm} p{4.2cm} p{3.2cm} p{3.2cm} p{3.2cm}}
+\toprule
+\textbf{Problema} & \textbf{Objetivos} & \textbf{Hipótesis} & \textbf{Variables y Dimensiones} & \textbf{Indicadores Prioritarios} & \textbf{Técnicas e Instrumentos} \\
+\midrule
+\textbf{Problema General (PG):} \newline
+¿En qué medida un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, basado en modelos generativos y recuperación relacional determinista, mejora la exactitud de precios, la latencia P95 y la eficiencia de recursos en Power Electrimk? &
+\textbf{Objetivo General (OG):} \newline
+Desarrollar un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, mediante la integración de modelos generativos y recuperación relacional determinista para garantizar cotizaciones fácticas en Power Electrimk. &
+\textbf{Hipótesis General (HG):} \newline
+El agente con recuperación local sobre SQLite permite alcanzar una exactitud en cotización $\ge 95\%$, tasa de alucinación nula ($0\%$), latencia en P95 $< 4.0$ s y consumo de RAM $< 250$ MB en la nube. &
+\textbf{Variable Independiente (VI):} \newline
+Modalidad de interacción conversacional con recuperación determinista local sobre catálogo estructurado. &
+- Exactitud de cotización ($Acc_{\text{cot}} \ge 95\%$). \newline
+- Tasa de alucinación ($H_{\text{rate}} = 0\%$). \newline
+- Latencia en P95 ($T_{\text{resp}} < 4.0$ s). \newline
+- Consumo RAM ($< 250$ MB). &
+\textbf{Técnicas:} \newline
+- Telemetría automatizada en servidor AWS. \newline
+- Pruebas de carga sintéticas. \newline
+\textbf{Instrumentos:} \newline
+- Scripts de benchmarking HTTP (k6 / wrk). \newline
+- Registro de logs estructurados. \\
+\addlinespace
+\textbf{Sistematización P1:} \newline
+¿Cuáles son los requerimientos técnicos y comerciales, y qué estructura relacional multimarca se requiere en Power Electrimk? &
+\textbf{Objetivo Específico 1 (O1):} \newline
+Analizar los requerimientos operativos de cotización y la estructura de catálogos multimarca en Power Electrimk, fijando especificaciones de diseño. &
+\textbf{Hipótesis Específica 1 (H1):} \newline
+La estructuración relacional normalizada en SQLite permite resolver consultas de inventario en $T_{\text{sql}} < 100$ ms con 100\% de integridad. &
+\textbf{Variable Dependiente 1 (VD1):} \newline
+\textit{Dimensión Estructura e Integridad de Catálogo:} \newline
+Consistencia y celeridad de consulta de inventario técnico. &
+- Tiempo de ejecución SQL ($T_{\text{sql}} < 100$ ms). \newline
+- Tasa de recuperación de SKU relevantes ($100\%$). \newline
+- Integridad de atributos (código, precio, marca). &
+\textbf{Técnicas:} \newline
+- Revisión bibliográfica de ingeniería. \newline
+- Entrevista técnica a asesores comerciales. \newline
+\textbf{Instrumentos:} \newline
+- Guía de entrevista semiestructurada. \newline
+- Matriz de extracción de atributos de catálogo. \\
+\addlinespace
+\textbf{Sistematización P2:} \newline
+¿Cómo diseñar una arquitectura ligera en .NET 8 que integre WhatsApp, Gemini y SQLite preservando la memoria conversacional? &
+\textbf{Objetivo Específico 2 (O2):} \newline
+Implementar un prototipo de microservicio en .NET 8 con persistencia SQLite WAL, orquestación Gemini y WhatsApp Cloud API. &
+\textbf{Hipótesis Específica 2 (H2):} \newline
+La arquitectura asíncrona en .NET 8 procesa webhooks concurrentes sin bloqueos y con memoria de proceso $< 250$ MB. &
+\textbf{Variable Dependiente 2 (VD2):} \newline
+\textit{Dimensión Eficiencia de Recursos:} \newline
+Huella computacional y concurrencia del servicio backend. &
+- Utilización de memoria RAM en .NET ($< 250$ MB). \newline
+- Concurrencia de sesiones activas simultáneas. \newline
+- Ocupación de CPU en servidor AWS ($< 30\%$). &
+\textbf{Técnicas:} \newline
+- Inspección de procesos y perfilado de memoria. \newline
+- Monitoreo de runtime en Kestrel / Linux. \newline
+\textbf{Instrumentos:} \newline
+- CLI dotnet-counters y dotnet-dump. \newline
+- Métricas CloudWatch en AWS EC2. \\
+\addlinespace
+\textbf{Sistematización P3:} \newline
+¿En qué medida la recuperación determinista mitiga la alucinación, mejora la exactitud y reduce la latencia P95 frente al modelo sin RAG? &
+\textbf{Objetivo Específico 3 (O3):} \newline
+Evaluar el prototipo mediante pruebas experimentales comparativas cuantificando exactitud, tasa de alucinación y latencia P95. &
+\textbf{Hipótesis Específica 3 (H3):} \newline
+El agente con recuperación local logra $H_{\text{rate}} = 0\%$, $Acc_{\text{cot}} \ge 95\%$ y $T_{\text{resp, P95}} < 4.0$ s con significancia ($p < 0{,}05$). &
+\textbf{Variable Dependiente 3 (VD3):} \newline
+\textit{Dimensión Exactitud Fáctica y Rendimiento:} \newline
+Certeza técnica y celeridad de respuesta de cotización. &
+- Exactitud en cotización ($Acc_{\text{cot}} \ge 95\%$). \newline
+- Tasa de alucinación fáctica ($H_{\text{rate}} = 0\%$). \newline
+- Latencia en percentil P95 ($T_{\text{resp, P95}} < 4.0$ s). \newline
+- Valor $p$ de significancia ($p < 0{,}05$). &
+\textbf{Técnicas:} \newline
+- Ensayo experimental controlado (control vs. experimental). \newline
+- Prueba de hipótesis estadística (t-Student / Wilcoxon). \newline
+\textbf{Instrumentos:} \newline
+- Batería de $N=50$ casos de prueba estructurados. \newline
+- Matriz de cotejo de precios vs. catálogo base. \\
+\bottomrule
+\end{tabular}
+\notatabla{Matriz adaptada de la plantilla oficial de consistencia de la investigación UPS Sede Guayaquil (P69).}
+\end{table}
+\end{landscape}
+
+% -------------------------------------------------------------------------
+% ANEXO 3: DIAGRAMA DE ARQUITECTURA DE SOFTWARE Y FLUJO DE DATOS
+% -------------------------------------------------------------------------
+\begin{landscape}
+\subsection{Anexo 3: Diagrama de arquitectura de software y flujo de procesamiento}
+
+En la Figura \ref{fig:arquitectura_completa} se ilustra la arquitectura de componentes y el flujo secuencial de procesamiento de mensajes del agente conversacional, detallando la interacción entre los servicios externos de mensajería e inferencia y la infraestructura de cómputo local en la nube.
+
+\begin{figure}[H]
+    \centering
+    \caption{Arquitectura integral del agente inteligente para la atención comercial con recuperación local de catálogos}
+    \label{fig:arquitectura_completa}
+    \begin{tikzpicture}[
+        node distance=1.6cm,
+        caja/.style={rectangle, rounded corners=3pt, draw=blue!70!black, fill=blue!8,
+                     text width=3.2cm, minimum height=1.65cm, align=center, font=\small},
+        datos/.style={cylinder, shape border rotate=90, aspect=0.25, draw=green!50!black,
+                      fill=green!8, text width=2.8cm, minimum height=1.65cm, align=center, font=\small},
+        ext/.style={rectangle, draw=orange!80!black, fill=orange!10, text width=3.0cm,
+                    minimum height=1.65cm, align=center, font=\small},
+        flecha/.style={-{Stealth[length=2.5mm]}, thick},
+        etq/.style={font=\fontsize{6.5}{7.5}\selectfont, fill=white, inner sep=1.2pt}
+    ]
+        % Actores y servicios de borde
+        \node[ext] (cliente) {\textbf{Cliente técnico}\\WhatsApp Mobile/Web\\Consulta comercial / Foto};
+        \node[ext, right=of cliente] (meta) {\textbf{WhatsApp Cloud API}\\Meta Graph API v20+\\Webhook oficial};
+        \node[caja, right=of meta] (nginx) {\textbf{Proxy inverso Nginx}\\Certbot TLS 1.3\\{\fontsize{6.5}{7.5}\selectfont agente.powerelectrimk.com}};
+        \node[caja, right=of nginx] (api) {\textbf{Servicio .NET 8}\\Runtime Kestrel :5252\\Systemd: agenteventas};
+        \node[ext, right=of api] (gemini) {\textbf{Google Gemini API}\\Inferencia Flash\\Free Tier / Pay-per-use};
+
+        % Almacenamiento local
+        \node[caja, below=1.8cm of api] (rag) {\textbf{Recuperación Local}\\Búsqueda determinista SQL\\por código, marca y cat.};
+        \node[datos, left=1.3cm of rag] (cat) {\textbf{SQLite (WAL)}\\Catálogo 10 marcas\\Índices brand/cat};
+        \node[datos, right=1.3cm of rag] (hist) {\textbf{SQLite (WAL)}\\Historial de chat\\Sesión y prospectos};
+
+        % Flujo de mensajes
+        \draw[flecha] (cliente) -- node[etq, above=2pt] {Mensaje de texto} (meta);
+        \draw[flecha] (meta) -- node[etq, above=2pt] {POST Webhook} (nginx);
+        \draw[flecha] (nginx) -- node[etq, above=2pt] {Proxy :5252} (api);
+        
+        % Comunicación bidireccional API <-> Gemini
+        \draw[flecha] ([yshift=0.3cm]api.east) -- node[etq, above=2pt] {Prompt Ground Truth} ([yshift=0.3cm]gemini.west);
+        \draw[flecha] ([yshift=-0.3cm]gemini.west) -- node[etq, below=2pt] {Respuesta contextual} ([yshift=-0.3cm]api.east);
+
+        % Comunicación API <-> RAG y Bases de Datos
+        \draw[flecha] (api) -- node[etq, right=2pt] {Extracción entidades} (rag);
+        \draw[flecha] (rag) -- node[etq, above=2pt] {Búsqueda SQL} (cat);
+        \draw[flecha, <->] (rag) -- node[etq, above=2pt] {Sesión (6 turnos)} (hist);
+        
+        % Envío de respuesta a WhatsApp
+        \draw[flecha, dashed] (api.north) to[bend right=22] node[etq, above=2pt] {POST /messages (Cotización verificada)} (meta.north);
+
+        % Envolvente de servidor AWS EC2
+        \node[draw=gray!80, dashed, rounded corners=5pt, fit=(nginx)(api)(rag)(cat)(hist), inner sep=0.45cm,
+              label={[font=\footnotesize\bfseries, gray!80]below:Instancia de Nube (AWS EC2 t2.micro --- Ubuntu 24.04.5 LTS --- Capa Gratuita 750 h/mes)}] {};
+    \end{tikzpicture}
+    \notatabla{Diagrama arquitectónico del flujo de ejecución desacoplado entre el webhook de mensajería, el backend en .NET 8, el almacenamiento local embebido y el servicio de inferencia en la nube.}
+\end{figure}
+\end{landscape}
+
+% -------------------------------------------------------------------------
+% ANEXO 4: REPOSITORIO DE CÓDIGO ABIERTO Y TRANSPARENCIA DE DATOS (ABET IV.3)
+% -------------------------------------------------------------------------
+\subsection{Anexo 4: Repositorio de código abierto y transparencia de datos}
+
+En estricto cumplimiento con el criterio de evaluación ABET IV.3 (Ética, Impacto y Reproducibilidad en Ingeniería), se formaliza el compromiso de acceso abierto a los artefactos de investigación:
+
+\begin{enumerate}
+    \item \textbf{Repositorio de código fuente:} Todo el código fuente del microservicio backend, los scripts de migración y estructuración de catálogos y las herramientas de benchmarking automatizado serán gestionados y publicados en el repositorio institucional público de GitHub:
+    \begin{center}
+        \url{https://github.com/vtotoy/agente-ventas-power}
+    \end{center}
+    \item \textbf{Licenciamiento de software:} El software se distribuye bajo los términos de la licencia de código abierto \textbf{MIT License}, permitiendo la auditoría por pares, su reutilización académica y la transferencia tecnológica sin fines de lucro hacia otras micro y pequeñas empresas ecuatorianas.
+    \item \textbf{Gobernanza y anonimización de datos (LOPDP):} Los conjuntos de datos de prueba, trazas de telemetría y transcripciones experimentales publicadas en el repositorio se someterán a un protocolo riguroso de anonimización irreversible. Los números telefónicos y nombres de personas naturales son sustituidos por identificadores sintéticos disociados (\textit{UUIDs}), garantizando el pleno acatamiento de la Ley Orgánica de Protección de Datos Personales del Ecuador.
+    \item \textbf{Guía de reproducibilidad computacional:} El repositorio incluye las directrices técnicas, el archivo \texttt{Dockerfile} de compilación multicapa y los procedimientos documentados paso a paso para desplegar el entorno de evaluación sobre cualquier distribución Linux con el runtime de .NET 8 y SQLite preinstalados.
+\end{enumerate}

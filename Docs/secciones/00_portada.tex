@@ -1,0 +1,60 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% CARÁTULA (formato oficial UPS Sede Guayaquil)
+% =========================================================================
+\begin{titlepage}
+\thispagestyle{empty}
+
+% Líneas superior e inferior a 1 cm de los bordes
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[thick, lightgray]
+            ([xshift=1cm, yshift=-1cm]current page.north west) --
+            ([xshift=-1cm, yshift=-1cm]current page.north east);
+        \draw[thick, lightgray]
+            ([xshift=1cm, yshift=1cm]current page.south west) --
+            ([xshift=-1cm, yshift=1cm]current page.south east);
+    \end{tikzpicture}
+
+\begin{center}
+        \scalebox{2.2}{
+                \begin{minipage}{0.2\textwidth}
+                    \centering
+                \includegraphics[width=\textwidth]{images/Logo_UPS.png}
+                \end{minipage}
+        }
+
+    \vspace{0.8cm}
+        {\fontsize{20}{24}\selectfont \textbf{Universidad Politécnica Salesiana}} \\[0.25cm]
+        {\fontsize{16}{20}\selectfont Sede Guayaquil}
+
+    \vspace{0.9cm}
+    {\fontsize{13}{15}\selectfont {CARRERA: COMPUTACIÓN}} \\
+    \vspace{0.7cm}
+    {\fontsize{13}{15}\selectfont \textbf{ANTEPROYECTO}} \\
+    \vspace{0.2cm}
+    {\fontsize{11}{13}\selectfont {Previo a la obtención del título de Ingeniero en Ciencias de la Computación}} \\
+
+    \vspace{1.0cm}
+    {\fontsize{11}{13}\selectfont {TÍTULO}} \\
+    \vspace{0.2cm}
+    {\fontsize{11}{14}\selectfont \textbf{\tituloProyecto}} \\
+
+    \vspace{0.9cm}
+    {\fontsize{11}{13}\selectfont {AUTORES}} \\
+    \vspace{0.2cm}
+    {\fontsize{11}{13}\selectfont \textbf{\autorUnoProyecto}} \\
+    {\fontsize{11}{13}\selectfont \textbf{\autorDosProyecto}} \\
+
+    \vspace{0.9cm}
+    {\fontsize{11}{13}\selectfont {TUTOR}} \\
+    \vspace{0.2cm}
+    {\fontsize{11}{13}\selectfont \textbf{\tutorProyecto}} \\
+
+\end{center}
+\vspace{0.8cm}
+\begin{center}
+    {\fontsize{11}{13}\selectfont Guayaquil, \monthname\ del \the\year}
+\end{center}
+
+\vfill
+\end{titlepage}

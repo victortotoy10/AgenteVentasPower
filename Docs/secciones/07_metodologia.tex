@@ -1,0 +1,66 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% 7. METODOLOGÍA / PROPUESTA DE DESARROLLO
+% Párrafo 1: taxonomía investigativa. Fases continuas.
+% Protocolo experimental cuantitativo formal (métricas, hipótesis, muestra).
+% Figura en TikZ con caption y nota APA 7.
+% =========================================================================
+\section{Metodología / Propuesta de desarrollo}
+
+La presente investigación adopta un alcance descriptivo y aplicado, bajo un enfoque metodológico mixto predominantemente cuantitativo y con un diseño cuasi-experimental de corte transversal. Según su propósito, constituye una investigación tecnológica orientada a la concepción, ingeniería y validación empírica de un artefacto de software; según el método de inferencia, es de naturaleza deductiva al derivar hipótesis operativas a partir de constructos teóricos consolidados; según la procedencia de la información, combina fuentes secundarias documentales (catálogos de fabricantes, especificaciones técnicas y literatura científica indexada) con datos primarios generados durante las pruebas automatizadas del sistema. La recolección de datos se sustentará en el registro automatizado de trazas de telemetría y métricas de rendimiento en servidor, complementado con entrevistas semiestructuradas al equipo comercial para el levantamiento de requerimientos de dominio \parencite{Llerena-Izquierdo_Ayala-Carabajo_2022}.
+
+El desarrollo del proyecto se estructurará rigurosamente en cinco fases consecutivas e iterativas:
+
+En la \textbf{Fase 1: Revisión bibliográfica y análisis de requerimientos}, se llevará a cabo una revisión bibliográfica exhaustiva fundamentada en directrices metodológicas para ingeniería de software y la recopilación de literatura científica reciente en bases de datos indexadas (Scopus, IEEE Xplore, ACM y Web of Science). Se analizarán investigaciones sobre agentes conversacionales, modelos de lenguaje extenso y técnicas de recuperación aumentada (RAG). De forma paralela, se levantarán los requerimientos funcionales y técnicos con el personal comercial de la distribuidora Power Electrimk, inventariando las marcas distribuidas (e.g., Bticino, Schneider Electric, Phelps Dodge, Centelsa, Legrand, Siemens, ABB, Veto) y digitalizando los catálogos técnicos y listas de precios para estandarizar los atributos esenciales de los productos.
+
+En la \textbf{Fase 2: Diseño de la arquitectura propuesta}, se definirá la arquitectura de software en capas basada en microservicios ligeros, estableciendo el esquema relacional en SQLite con optimización de índices para búsqueda textual rápida y soporte de transacciones concurrentes bajo modo WAL. Se diseñará el flujo de control para la verificación y consumo de los webhooks de WhatsApp Cloud API, la lógica de recuperación de productos afines a partir del mensaje del cliente y el mensaje de sistema (\textit{system prompt}) que gobernará el comportamiento del modelo generativo Gemini \parencite{Zerega-Prado2022}.
+
+En la \textbf{Fase 3: Desarrollo del prototipo funcional}, se programará el servicio web en lenguaje C\# sobre la plataforma .NET 8, aprovechando sus características nativas de alto rendimiento asíncrono y bajo consumo de memoria. Se implementará la lógica del embudo comercial (calificación de prospectos, asesoría técnica de compatibilidad, consulta determinista de inventario y síntesis de cotización fáctica con desglose de ítems, códigos de parte, precios unitarios y totales), el módulo de persistencia y contexto conversacional por número de teléfono, el conector HTTP con autenticación Bearer hacia la API de WhatsApp, la capa de consulta relacional SQLite WAL y la integración con el SDK de Google Gemini para la síntesis contextual en lenguaje natural \parencite{educsci14121330}. La arquitectura se estructurará mediante interfaces desacopladas que habilitan contractualmente la integración de visión multimodal para reconocimiento de imágenes de piezas eléctricas, pase asistido a asesor humano mediante máquina de estados, seguimiento automatizado de cotizaciones y sincronización con plataformas CRM en fases operativas posteriores.
+
+En la \textbf{Fase 4: Despliegue y pruebas experimentales}, el prototipo se desplegará en una instancia virtual Linux (Ubuntu 24.04.5 LTS) en Amazon Web Services (AWS EC2 t2.micro, acogida a la Capa Gratuita de 750 horas mensuales), configurando un servidor Nginx como proxy inverso hacia el runtime Kestrel en puerto 5252, administrado por el demonio Systemd (\texttt{agenteventas.service}) y con terminación de certificados de seguridad TLS 1.3 emitidos por Certbot (Let's Encrypt) bajo el subdominio oficial \texttt{agente.powerelectrimk.com}. Se ejecutará un protocolo experimental automatizado compuesto por una batería de $N = 50$ casos de prueba estructurados (búsquedas por código exacto, por especificación técnica, por categoría y solicitudes multimarca), comparando el desempeño del agente con recuperación local determinista frente al modelo generativo sin recuperación para cuantificar la tasa de eliminación de alucinaciones en precios y referencias de catálogo.
+
+En la \textbf{Fase 5: Análisis de resultados y documentación}, se procesarán estadísticamente las métricas de latencia de respuesta, porcentaje de exactitud en precios y referencias técnicas, tasa de alucinación y utilización de memoria RAM y procesador en el servidor. Los resultados se contrastarán contra las hipótesis de investigación planteadas, y se redactará el informe técnico final de titulación de conformidad con las directrices institucionales \parencite{10.1007/978-3-031-98890-5_3}.
+
+La Figura \ref{fig:metodologia} sintetiza el flujo de fases del proyecto y los entregables correspondientes a cada etapa de la investigación.
+
+\begin{figure}[H]
+    \centering
+    \caption{Diagrama de flujo de las fases de la metodología de investigación}
+    \label{fig:metodologia}
+    \begin{tikzpicture}[
+        node distance=0.55cm,
+        fase/.style={rectangle, rounded corners=3pt, draw=blue!60!black, fill=blue!8,
+                     text width=4.4cm, minimum height=1.45cm, align=center, font=\small},
+        prod/.style={rectangle, draw=gray!70, fill=gray!8, text width=5.6cm,
+                     minimum height=1.45cm, align=left, font=\footnotesize},
+        flecha/.style={-{Stealth[length=2.5mm]}, thick, blue!60!black}
+    ]
+        \node[fase] (f1) {\textbf{Fase 1}\\Revisión bibliográfica y análisis de requerimientos};
+        \node[fase, below=of f1] (f2) {\textbf{Fase 2}\\Diseño de la arquitectura propuesta};
+        \node[fase, below=of f2] (f3) {\textbf{Fase 3}\\Desarrollo del prototipo funcional};
+        \node[fase, below=of f3] (f4) {\textbf{Fase 4}\\Despliegue y pruebas experimentales};
+        \node[fase, below=of f4] (f5) {\textbf{Fase 5}\\Análisis de resultados y documentación};
+
+        \node[prod, right=1.2cm of f1] (p1) {Estado del arte científico, matriz de requerimientos y catálogos normalizados.};
+        \node[prod, right=1.2cm of f2] (p2) {Diseño arquitectónico, modelo relacional SQLite WAL y especificación de webhooks.};
+        \node[prod, right=1.2cm of f3] (p3) {Servicio .NET 8 con Gemini, recuperación local SQLite y memoria de sesión.};
+        \node[prod, right=1.2cm of f4] (p4) {Instancia AWS con Nginx y TLS 1.3; batería de 50 pruebas y telemetría registrada.};
+        \node[prod, right=1.2cm of f5] (p5) {Evaluación comparativa (con/sin RAG), reporte de hipótesis e informe final.};
+
+        \foreach \a/\b in {f1/f2, f2/f3, f3/f4, f4/f5} \draw[flecha] (\a) -- (\b);
+        \foreach \i in {1,...,5} \draw[-{Stealth[length=2mm]}, gray!70] (f\i) -- (p\i);
+        \draw[flecha, dashed] (f4.west) -- ++(-0.6,0) |- node[pos=0.25, left, font=\scriptsize, text width=1.8cm, align=center] {ajustes y\\calibración} (f3.west);
+    \end{tikzpicture}
+    \notatabla{El diagrama ilustra la progresión secuencial de las cinco fases metodológicas y sus entregables tangibles, incluyendo el lazo de retroalimentación de ajustes entre la fase experimental y el código del prototipo.}
+\end{figure}
+
+Para la evaluación formal del sistema se han operacionalizado las siguientes métricas experimentales:
+\begin{itemize}
+    \item \textbf{Latencia de respuesta ($T_{\text{resp}}$):} Tiempo total transcurrido en segundos desde la recepción del evento HTTP en el webhook hasta la emisión de la llamada de respuesta a la API de WhatsApp, medido con precisión de milisegundos mediante marcas de tiempo en el servidor.
+    \item \textbf{Exactitud de cotización ($Acc_{\text{cot}}$):} Porcentaje de cotizaciones emitidas donde los códigos de producto, marcas y precios unitarios coinciden exactamente con los registros vigentes del inventario oficial, definido como:
+    \begin{equation}
+        Acc_{\text{cot}} = \left( \frac{C_{\text{correctas}}}{C_{\text{totales}}} \right) \times 100\%
+    \end{equation}
+    \item \textbf{Tasa de alucinación ($H_{\text{rate}}$):} Proporción de respuestas en las que el modelo generativo asevera precios inexistentes, inventa atributos de productos o recomienda ítems no catalogados en la base de datos comercial.
+    \item \textbf{Consumo de recursos:} Perfil de utilización de memoria RAM del proceso .NET (en megabytes) y porcentaje promedio de ocupación de CPU en la instancia de nube durante ráfagas de consultas.
+\end{itemize}

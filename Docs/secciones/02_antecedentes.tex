@@ -1,0 +1,40 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% 2. ANTECEDENTES
+% Metodología 5W + H (What, Who, Where, When, Why, How)
+% Estructura en 4 párrafos: Macro, Meso (Trabajos relacionados),
+% Micro (Brecha del conocimiento), Propuesta (Novedad y aporte).
+% Tabla comparativa formal en formato APA 7 estricto (booktabs, sin líneas verticales).
+% =========================================================================
+\section{Antecedentes}
+
+Actualmente, el comercio conversacional a través de plataformas de mensajería instantánea constituye el canal preponderante de captación y venta técnica para las pequeñas y medianas empresas comerciales \parencite{adamopoulou2020chatbots,adam2021chatbots,folstad2020users,luo2019frontiers}. En el sector de la distribución de materiales eléctricos e ingeniería en la ciudad de Guayaquil, contratistas independientes, técnicos electricistas y empresas constructoras demandan cotizaciones inmediatas y continuas que involucran especificaciones rigurosas de marcas líderes como Schneider Electric, Siemens, Legrand, Centelsa y ABB. No obstante, este proceso se gestiona tradicionalmente de forma manual mediante asesores de mostrador que deben consultar dispersos catálogos en formato PDF y extensas hojas de cálculo de precios. Esta modalidad ocasiona tiempos de espera para el cliente que oscilan entre 2 y 8 horas hábiles, lo cual provoca una pérdida directa de oportunidades comerciales estimada entre el 20\% y el 35\% de las solicitudes recibidas, dado que los compradores migran rápidamente hacia competidores con mayor celeridad de respuesta. De no implementarse mecanismos tecnológicos que sistematicen la atención, las distribuidoras enfrentan un incremento sostenido de sus costos operativos y el deterioro gradual de la fidelización de sus clientes \parencite{Llerena-Izquierdo_Ayala-Carabajo_2022,llerena2025guia}.
+
+Diversas investigaciones previas abordaron la automatización del servicio al cliente mediante sistemas conversacionales computacionales. \textcite{adamopoulou2020chatbots} documentaron la evolución histórica de los agentes conversacionales, demostrando que las arquitecturas iniciales basadas en árboles de decisión y expresiones regulares presentan una rigidez severa ante la variabilidad del lenguaje natural no contemplado en su diseño. \textcite{adam2021chatbots} y \textcite{sands2021who} evidenciaron que la incorporación de señales de interacción antropomórfica y presencia social en asistentes virtuales incrementa la tasa de adopción y cumplimiento de los usuarios, mientras que \textcite{ashfaq2020chatbot} y \textcite{han2023conversational} modelaron los determinantes de satisfacción e intención de compra en entornos de comercio electrónico conversacional. Con la introducción de la arquitectura Transformer por \textcite{vaswani2017attention}, los Modelos de Lenguaje Extenso (LLM) transformaron el procesamiento del lenguaje; consecuentemente, \textcite{wang2024survey} sistematizaron su aplicación en agentes autónomos capaces de inferir intenciones complejas y orquestar herramientas. Sin embargo, \textcite{ji2023hallucination} y \textcite{huang2023survey} demostraron que los modelos generativos producen alucinaciones probabilísticas al responder sobre datos no presentes en su entrenamiento, lo que resulta crítico en transacciones comerciales al alterar precios o inventarios. Para mitigar esta debilidad, \textcite{guu2020realm} y \textcite{lewis2020retrieval} formularon los fundamentos de la Generación Aumentada por Recuperación (RAG), mientras que \textcite{borgeaud2022improving} y \textcite{gao2023retrieval} profundizaron en modelos de recuperación densa sobre corpus masivos. Asimismo, mientras que \textcite{wu2023autogen} plantearon esquemas multiagente que requieren clústeres de servidores y múltiples llamadas secuenciales a los modelos, y \textcite{asai2024selfrag} propusieron marcos de auto-reflexión computacionalmente densos, \textcite{educsci14121330} y \textcite{Llerena-Izquierdo2024} validaron en el entorno local la factibilidad y eficacia de emplear modelos fundacionales modernos de alta velocidad (Gemini) en procesos aplicados.
+
+A pesar de los aportes documentados, la literatura científica evidencia una brecha tecnológica sustancial en el despliegue de agentes inteligentes en entornos de recursos computacionales restringidos para empresas comerciales. Los sistemas RAG convencionales dependen de bases de datos vectoriales y modelos de incrustación de alta demanda de memoria RAM y GPU, lo que imposibilita su alojamiento en servidores de entrada en la nube de bajo costo (instancias con 1 GB de RAM). De igual forma, las arquitecturas multiagente incrementan la latencia a más de diez segundos por interacción, excediendo los límites estrictos de los webhooks de Meta y afectando la experiencia del usuario. No se ha evidenciado un modelo que resuelva la recuperación estructurada sobre catálogos técnicos multimarca donde la búsqueda precisa por atributos deterministas (código de fábrica, amperaje, calibre y marca) garantice cero alucinaciones de precios y conserve la memoria contextual de cada cliente en un único microservicio ligero.
+
+Para resolver esta brecha, el presente proyecto técnico desarrollará un agente inteligente para la atención comercial y cotización de materiales eléctricos que integrará un modelo generativo multimodal con un mecanismo de recuperación local de catálogos estructurados sobre una base de datos embebida SQLite con registro en modo Write-Ahead Logging \parencite{gaffney2022sqlite}. El agente operará como un servicio web asíncrono en .NET 8 conectado a la API oficial de WhatsApp Cloud y al modelo fundacional Gemini, tomando como escenario experimental a la distribuidora Power Electrimk de la ciudad de Guayaquil. Siguiendo la línea de investigación de \textcite{Ayala-Carabajo2026} sobre dominios cognitivos y sistemas inteligentes, la propuesta automatiza el embudo de ventas técnicas anclando deterministamente cada consulta a registros verificables de catálogo, garantizando precios exactos, latencia de respuesta sub-cuatro segundos, trazabilidad del cliente y derivación asistida hacia asesores comerciales humanos con costos de infraestructura mínimos. En la Tabla \ref{tab:trabajos_previos} se presenta el análisis comparativo del estado del arte.
+
+\begin{table}[H]
+\centering
+\caption{Comparativa de trabajos previos en sistemas conversacionales para comercio técnico}
+\label{tab:trabajos_previos}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{3.8cm}}
+\toprule
+\textbf{Autor} & \textbf{Técnica base} & \textbf{Ventajas identificadas} & \textbf{Limitaciones operativas} \\
+\midrule
+\textcite{adamopoulou2020chatbots} & Árboles de decisión y patrones regex & Respuestas deterministas y predecibles & Rigidez ante variaciones de lenguaje natural \\
+\addlinespace
+\textcite{adam2021chatbots} & Chatbot con señales antropomórficas & Alta aceptación y fluidez de usuario & Carece de verificación de datos técnicos y precios \\
+\addlinespace
+\textcite{wang2024survey} & Agentes autónomos basados en LLM & Comprensión semántica flexible y herramientas & Alucinaciones factuales en cotizaciones exactas \\
+\addlinespace
+\textcite{lewis2020retrieval}; \textcite{gao2023retrieval} & RAG tradicional con base vectorial & Anclaje de respuestas a documentos extensos & Alto consumo de RAM/GPU y búsqueda inexacta \\
+\addlinespace
+\textcite{wu2023autogen} & Orquestación multiagente distribuida & Resolución colaborativa de tareas complejas & Alta latencia acumulada y costos prohibitivos \\
+\bottomrule
+\end{tabular}
+\notatabla{Elaboración propia a partir de la revisión sistemática de literatura sobre arquitecturas conversacionales.}
+\end{table}
