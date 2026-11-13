@@ -12,6 +12,17 @@
 *.pem
 *.secret
 
+# Heavy raw catalogs (> 100MB PDFs)
+Catalogos/
+
+# SQLite Databases and temporary journal files
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+
 # LaTeX build artifacts and temporary files
 *.aux
 *.bbl
