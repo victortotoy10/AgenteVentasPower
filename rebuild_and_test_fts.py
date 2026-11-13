@@ -50,3 +50,4 @@ for db in db_paths:
             print(f"   -> {r[0]} | {r[1]} ({r[2]})")
             
     conn.close()
+
