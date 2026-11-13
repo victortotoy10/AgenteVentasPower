@@ -397,6 +397,33 @@ public class DatabaseService
         return null;
     }
 
+    private static readonly HashSet<string> SearchStopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "hola", "buenos", "buenas", "dias", "tardes", "noches", "saludos", "estimado", "estimados",
+        "amigo", "amigos", "por", "favor", "tiene", "tienen", "tendran", "necesito", "busco", "requiero",
+        "quisiera", "cotizar", "precio", "costo", "para", "como", "esta", "estas", "este", "estos",
+        "unas", "unos", "una", "uno", "que", "con", "del", "los", "las", "les", "mas", "menos"
+    };
+
+    private static readonly Dictionary<string, string[]> SearchSynonyms = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "breaker", ["interruptor", "termomagnetico", "disyuntor", "compact", "easy9", "acti9"] },
+        { "breakers", ["interruptor", "termomagnetico", "disyuntor", "compact", "easy9", "acti9"] },
+        { "taco", ["interruptor", "termomagnetico", "easy9", "acti9"] },
+        { "tacos", ["interruptor", "termomagnetico", "easy9", "acti9"] },
+        { "trifasico", ["3P", "tripolar"] },
+        { "bipolar", ["2P", "bifasico"] },
+        { "monofasico", ["1P", "unipolar"] },
+        { "boton", ["pulsador", "harmony"] },
+        { "botones", ["pulsador", "harmony"] },
+        { "seta", ["emergencia", "hongo", "xb4bs542"] },
+        { "150a", ["160A", "150", "160", "LV430630", "LV426105"] },
+        { "150", ["160A", "160", "150A", "LV430630", "LV426105"] },
+        { "guardamotor", ["gv2", "gv2me", "guardamotor", "tesys"] },
+        { "contactor", ["tesys", "lc1d", "lc1k", "contactor"] },
+        { "variador", ["altivar", "atv", "atv12", "atv320"] }
+    };
+
     /// <summary>
     /// Búsqueda inteligente de alto rendimiento con SQLite FTS5 (Full-Text Search BM25) para Técnicos y Compras.
     /// Resuelve consultas complejas en < 2 ms con consumo mínimo de recursos.
@@ -424,18 +451,41 @@ public class DatabaseService
             await using var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync();
 
-            // 2. Extraer términos significativos para FTS5
-            var words = cleanQuery
+            // 2. Extraer términos significativos filtrando stopwords y expandiendo sinónimos
+            var rawTokens = cleanQuery
                 .Split(new[] { ' ', ',', '.', ';', '?', '!', '(', ')', '"', '\'', '-', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(w => w.Length >= 2)
-                .Take(5)
-                .Select(w => $"{w}*") // Prefijo para coincidencia flexible
+                .Where(w => w.Length >= 2 && !SearchStopWords.Contains(w))
+                .Take(8)
                 .ToList();
 
-            if (words.Count == 0) return results;
+            if (rawTokens.Count == 0)
+            {
+                rawTokens = cleanQuery
+                    .Split(new[] { ' ', ',', '.', ';', '?', '!' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(w => w.Length >= 2)
+                    .Take(4)
+                    .ToList();
+            }
+
+            if (rawTokens.Count == 0) return results;
+
+            var ftsTokens = new List<string>();
+            foreach (var token in rawTokens)
+            {
+                if (SearchSynonyms.TryGetValue(token, out var syns))
+                {
+                    var synTerms = syns.Select(s => $"{s}*").ToList();
+                    synTerms.Insert(0, $"{token}*");
+                    ftsTokens.Add($"({string.Join(" OR ", synTerms)})");
+                }
+                else
+                {
+                    ftsTokens.Add($"{token}*");
+                }
+            }
 
             // Ensamblar consulta FTS5 con operador OR y ponderación de ranking BM25
-            var ftsMatchQuery = string.Join(" OR ", words);
+            var ftsMatchQuery = string.Join(" OR ", ftsTokens);
 
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = """
