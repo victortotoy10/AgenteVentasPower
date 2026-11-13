@@ -124,6 +124,36 @@ public class DatabaseService
 
         // 5. Sembrar catálogo inicial verificado de las 6 líneas clave
         SeedCatalogIfEmpty(connection);
+
+        // 6. Verificar integridad del índice FTS5 y reconstruir si hay desfase
+        try
+        {
+            using var chkCmd = connection.CreateCommand();
+            chkCmd.CommandText = "SELECT (SELECT COUNT(1) FROM ProductsCatalog), (SELECT COUNT(1) FROM Products_FTS);";
+            using var reader = chkCmd.ExecuteReader();
+            if (reader.Read())
+            {
+                var catCount = reader.GetInt64(0);
+                var ftsCount = reader.GetInt64(1);
+                if (catCount > 0 && catCount != ftsCount)
+                {
+                    using var rebCmd = connection.CreateCommand();
+                    rebCmd.CommandText = "INSERT INTO Products_FTS(Products_FTS) VALUES('rebuild');";
+                    rebCmd.ExecuteNonQuery();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AVISO FTS INIT] Reconstruyendo índice por seguridad: {ex.Message}");
+            try
+            {
+                using var rebCmd = connection.CreateCommand();
+                rebCmd.CommandText = "INSERT INTO Products_FTS(Products_FTS) VALUES('rebuild');";
+                rebCmd.ExecuteNonQuery();
+            }
+            catch { }
+        }
     }
 
     private void SeedCatalogIfEmpty(SqliteConnection connection)
@@ -407,21 +437,36 @@ public class DatabaseService
 
     private static readonly Dictionary<string, string[]> SearchSynonyms = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "breaker", ["interruptor", "termomagnetico", "disyuntor", "compact", "easy9", "acti9"] },
-        { "breakers", ["interruptor", "termomagnetico", "disyuntor", "compact", "easy9", "acti9"] },
-        { "taco", ["interruptor", "termomagnetico", "easy9", "acti9"] },
-        { "tacos", ["interruptor", "termomagnetico", "easy9", "acti9"] },
-        { "trifasico", ["3P", "tripolar"] },
-        { "bipolar", ["2P", "bifasico"] },
-        { "monofasico", ["1P", "unipolar"] },
-        { "boton", ["pulsador", "harmony"] },
-        { "botones", ["pulsador", "harmony"] },
-        { "seta", ["emergencia", "hongo", "xb4bs542"] },
-        { "150a", ["160A", "150", "160", "LV430630", "LV426105"] },
-        { "150", ["160A", "160", "150A", "LV430630", "LV426105"] },
-        { "guardamotor", ["gv2", "gv2me", "guardamotor", "tesys"] },
-        { "contactor", ["tesys", "lc1d", "lc1k", "contactor"] },
-        { "variador", ["altivar", "atv", "atv12", "atv320"] }
+        { "breaker", ["interruptor", "termomagnetico", "disyuntor", "compact", "easy9", "acti9", "5sl", "3va"] },
+        { "breakers", ["interruptor", "termomagnetico", "disyuntor", "compact", "easy9", "acti9", "5sl", "3va"] },
+        { "disyuntor", ["interruptor", "termomagnetico", "breaker", "5sl", "acti9", "easy9", "3va"] },
+        { "disyuntores", ["interruptor", "termomagnetico", "breaker", "5sl", "acti9", "easy9", "3va"] },
+        { "taco", ["interruptor", "termomagnetico", "easy9", "acti9", "5sl"] },
+        { "tacos", ["interruptor", "termomagnetico", "easy9", "acti9", "5sl"] },
+        { "trifasico", ["3P", "tripolar", "trifasica"] },
+        { "bipolar", ["2P", "bifasico", "bifasica"] },
+        { "monofasico", ["1P", "unipolar", "monofasica"] },
+        { "boton", ["pulsador", "harmony", "3su1", "sirius"] },
+        { "botones", ["pulsador", "harmony", "3su1", "sirius"] },
+        { "seta", ["emergencia", "hongo", "xb4bs542", "3su1"] },
+        { "150a", ["160A", "150", "160", "LV430630", "LV426105", "3VA1116", "3VA2216"] },
+        { "150", ["160A", "160", "150A", "LV430630", "LV426105", "3VA1116", "3VA2216"] },
+        { "guardamotor", ["gv2", "gv2me", "3rv", "3rv20", "tesys", "sirius"] },
+        { "guardamotores", ["gv2", "gv2me", "3rv", "3rv20", "tesys", "sirius"] },
+        { "contactor", ["tesys", "lc1d", "lc1k", "3rt", "3rt20", "sirius"] },
+        { "contactores", ["tesys", "lc1d", "lc1k", "3rt", "3rt20", "sirius"] },
+        { "motor", ["contactor", "guardamotor", "tesys", "sirius", "lc1d", "3rt20", "gv2", "3rv20"] },
+        { "motores", ["contactor", "guardamotor", "tesys", "sirius", "lc1d", "3rt20", "gv2", "3rv20"] },
+        { "variador", ["altivar", "atv", "atv12", "atv320", "sinamics", "v20", "g120"] },
+        { "variadores", ["altivar", "atv", "atv12", "atv320", "sinamics", "v20", "g120"] },
+        { "plc", ["logo", "simatic", "s7-1200", "zelio", "modicon"] },
+        { "automata", ["logo", "simatic", "s7-1200", "zelio", "modicon"] },
+        { "rele", ["lrd", "rxm", "3ru", "3ru21", "3rp", "3ug", "harmony", "sirius"] },
+        { "reles", ["lrd", "rxm", "3ru", "3ru21", "3rp", "3ug", "harmony", "sirius"] },
+        { "fuente", ["sitop", "abl", "psu100c", "psu8200"] },
+        { "fuentes", ["sitop", "abl", "psu100c", "psu8200"] },
+        { "arrancador", ["3rw", "3rw30", "3rw40", "3rw52", "ats", "altistart"] },
+        { "arrancadores", ["3rw", "3rw30", "3rw40", "3rw52", "ats", "altistart"] }
     };
 
     /// <summary>
@@ -487,43 +532,57 @@ public class DatabaseService
             // Ensamblar consulta FTS5 con operador OR y ponderación de ranking BM25
             var ftsMatchQuery = string.Join(" OR ", ftsTokens);
 
-            await using var cmd = connection.CreateCommand();
-            cmd.CommandText = """
-                SELECT p.Brand, p.BusinessLine, p.Family, p.Series, p.Code, p.Name, p.Description, p.TechnicalSpecs, p.Application, p.Status
-                FROM Products_FTS f
-                JOIN ProductsCatalog p ON p.Id = f.rowid
-                WHERE Products_FTS MATCH @FtsQuery
-                ORDER BY rank
-                LIMIT @Limit;
-            """;
-            cmd.Parameters.AddWithValue("@FtsQuery", ftsMatchQuery);
-            cmd.Parameters.AddWithValue("@Limit", limit);
-            cmd.Prepare(); // Plan precompilado (Prepared Statement)
-
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            try
             {
-                results.Add(new ProductRecord(
-                    Brand: reader.GetString(0),
-                    BusinessLine: reader.GetString(1),
-                    Family: reader.GetString(2),
-                    Series: reader.IsDBNull(3) ? "" : reader.GetString(3),
-                    Code: reader.GetString(4),
-                    Name: reader.GetString(5),
-                    Description: reader.IsDBNull(6) ? "" : reader.GetString(6),
-                    TechnicalSpecs: reader.IsDBNull(7) ? "{}" : reader.GetString(7),
-                    Application: reader.IsDBNull(8) ? "" : reader.GetString(8),
-                    Status: reader.IsDBNull(9) ? "Disponible" : reader.GetString(9)
-                ));
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = """
+                    SELECT p.Brand, p.BusinessLine, p.Family, p.Series, p.Code, p.Name, p.Description, p.TechnicalSpecs, p.Application, p.Status
+                    FROM Products_FTS f
+                    JOIN ProductsCatalog p ON p.Id = f.rowid
+                    WHERE Products_FTS MATCH @FtsQuery
+                    ORDER BY rank
+                    LIMIT @Limit;
+                """;
+                cmd.Parameters.AddWithValue("@FtsQuery", ftsMatchQuery);
+                cmd.Parameters.AddWithValue("@Limit", limit);
+                cmd.Prepare(); // Plan precompilado (Prepared Statement)
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    results.Add(new ProductRecord(
+                        Brand: reader.GetString(0),
+                        BusinessLine: reader.GetString(1),
+                        Family: reader.GetString(2),
+                        Series: reader.IsDBNull(3) ? "" : reader.GetString(3),
+                        Code: reader.GetString(4),
+                        Name: reader.GetString(5),
+                        Description: reader.IsDBNull(6) ? "" : reader.GetString(6),
+                        TechnicalSpecs: reader.IsDBNull(7) ? "{}" : reader.GetString(7),
+                        Application: reader.IsDBNull(8) ? "" : reader.GetString(8),
+                        Status: reader.IsDBNull(9) ? "Disponible" : reader.GetString(9)
+                    ));
+                }
+            }
+            catch (Exception ftsEx)
+            {
+                Console.WriteLine($"[AVISO FTS AUTO-REPAIR] Error en consulta FTS '{ftsMatchQuery}': {ftsEx.Message}. Reparando índice...");
+                try
+                {
+                    await using var fixCmd = connection.CreateCommand();
+                    fixCmd.CommandText = "INSERT INTO Products_FTS(Products_FTS) VALUES('rebuild');";
+                    await fixCmd.ExecuteNonQueryAsync();
+                }
+                catch { }
             }
 
-            // 3. Fallback: Si FTS5 no devolvió coincidencias por caracteres especiales, hacemos un escaneo de índice LIKE
+            // 3. Fallback Seguro: Si FTS5 no devolvió coincidencias o falló, hacemos un escaneo de índice LIKE
             if (results.Count == 0)
             {
                 var fallbackWords = cleanQuery
                     .Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Where(w => w.Length >= 3)
-                    .Take(3)
+                    .Where(w => w.Length >= 3 && !SearchStopWords.Contains(w))
+                    .Take(4)
                     .ToList();
 
                 if (fallbackWords.Count > 0)
@@ -568,7 +627,7 @@ public class DatabaseService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR DB FTS SEARCH] Error en búsqueda de productos para '{cleanQuery}': {ex.Message}");
+            Console.WriteLine($"[ERROR DB SEARCH] Error general en búsqueda de productos para '{cleanQuery}': {ex.Message}");
         }
 
         return results;
