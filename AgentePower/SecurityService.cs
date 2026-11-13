@@ -52,21 +52,23 @@ public class SecurityService
     private static readonly Regex[] InjectionPatterns =
     [
         // Intentos de anular o resetear instrucciones
-        new(@"(?i)\b(ignore|olvida|desconsidera|omite|descarta)\b.*\b(instrucciones|instructions|reglas|rules|directivas|ordenes)\b", RegexOptions.Compiled),
+        new(@"(?i)\b(o?lvida|ignore|desconsidera|omite|descarta)\b.*\b(instrucciones|instructions|reglas|rules|directivas|ordenes)\b", RegexOptions.Compiled),
         new(@"(?i)\b(forget|bypass|override)\b.*\b(previous|all|system)\b.*\b(instructions|prompts|rules)\b", RegexOptions.Compiled),
         
-        // Extracción de System Prompt o Meta Prompt
+        // Extracción de System Prompt o Meta Prompt o Canary Tokens
         new(@"(?i)\b(system\s*prompt|system\s*instruction|instrucci[oó]n\s+del\s+sistema|meta\s*prompt|directiva\s+base)\b", RegexOptions.Compiled),
         new(@"(?i)\b(repite|repeat|print|muestra|show|display)\b.*\b(palabras\s+anteriores|initial\s+prompt|full\s+prompt|everything\s+above)\b", RegexOptions.Compiled),
-        new(@"(?i)\b(dime|cu[aá]l\s+es)\b.*\b(tu\s+prompt|tus\s+instrucciones|tu\s+configuraci[oó]n\s+interna)\b", RegexOptions.Compiled),
+        new(@"(?i)\b(dime|cu[aá]l\s+es)\b.*\b(tu\s+prompt|tus\s+instrucciones|tu\s+configuraci[oó]n\s+interna|tu\s+token|token\s+secreto|token\s+confidencial)\b", RegexOptions.Compiled),
+        new(@"(?i)\b(token\s*confidencial|token\s*secreto|canary\s*token|secret\s*token)\b", RegexOptions.Compiled),
         
         // Adopción forzada de rol malicioso o modos especiales
-        new(@"(?i)\b(ahora\s+eres|you\s+are\s+now|act[uú]a\s+como|pretend\s+to\s+be|roleplay\s+as)\b.*\b(DAN|jailbreak|unrestricted|omega|root|developer|modo\s+libre)\b", RegexOptions.Compiled),
-        new(@"(?i)\b(sudo\s+mode|modo\s+desarrollador|developer\s+mode|god\s+mode|jailbroken)\b", RegexOptions.Compiled),
+        new(@"(?i)\b(ahora\s+eres|you\s+are\s+now|act[uú]a\s+como|pretend\s+to\s+be|roleplay\s+as)\b.*\b(DAN|jailbreak|unrestricted|omega|root|developer|modo\s+libre|administrador)\b", RegexOptions.Compiled),
+        new(@"(?i)\b(sudo\s+mode|modo\s+desarrollador|developer\s+mode|god\s+mode|jailbroken|administrador\s+de\s+pruebas)\b", RegexOptions.Compiled),
         
         // Coerción comercial / compromiso contractual ilícito
         new(@"(?i)\b(oferta\s+vinculante|legally\s+binding|sin\s+marcha\s+atr[aá]s|compromiso\s+legal)\b.*\b(gratis|regalo|\$0|\$1)\b", RegexOptions.Compiled),
-        new(@"(?i)\b(todos\s+los\s+productos\s+cuestan\s+\$0|descuento\s+del\s+100%|v[eé]ndeme\s+por\s+\$0\.01)\b", RegexOptions.Compiled)
+        new(@"(?i)\b(todos\s+los\s+productos\s+cuestan\s+\$0|descuento\s+del\s+100%|v[eé]ndeme\s+por\s+\$0\.01)\b", RegexOptions.Compiled),
+        new(@"(?i)\b(cotizaci[oó]n|oferta|proforma)\b.*\b(\$0|\$0\.00|cero\s*d[oó]lares|gratis)\b", RegexOptions.Compiled)
     ];
 
     // 2. Detección de caracteres invisibles o de control de ancho cero
