@@ -6,6 +6,7 @@ def get_db_paths():
     paths = [
         os.path.abspath("AgentePower/agente_ventas.db"),
         os.path.abspath("AgentePower/bin/Debug/net8.0/agente_ventas.db"),
+        os.path.abspath("publish/agente_ventas.db"),
         os.path.abspath("agente_ventas.db")
     ]
     return [p for p in paths if os.path.exists(os.path.dirname(p))]
