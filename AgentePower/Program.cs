@@ -186,34 +186,61 @@ app.MapPost("/api/whatsapp/webhook", async (
                             await EnviarMensajeWhatsApp(numeroCliente, msgFallo);
                         }
                     }
-                    // Caso C: Mensaje con Documento (Hojas de cálculo de proyectos Excel / CSV con escaneo de seguridad en RAM)
+                    // Caso C: Mensaje con Documento (Excel, CSV o PDF de requerimientos de proyectos)
                     else if (message.Type == "document" && message.Document != null && !string.IsNullOrWhiteSpace(message.Document.Id))
                     {
-                        var filename = message.Document.Filename ?? "requerimiento_proyecto.xlsx";
+                        var filename = message.Document.Filename ?? "documento_requerimiento";
                         var caption = message.Document.Caption ?? string.Empty;
-                        Console.WriteLine($"[NUEVO DOCUMENTO RECIBIDO] De: {numeroCliente} - Archivo: {filename} - MediaId: {message.Document.Id} - Caption: {caption}");
+                        var ext = Path.GetExtension(filename).ToLowerInvariant();
+                        Console.WriteLine($"[NUEVO DOCUMENTO RECIBIDO] De: {numeroCliente} - Archivo: {filename} - Ext: {ext} - MediaId: {message.Document.Id} - Caption: {caption}");
 
                         var (fileBytes, mimeType) = await DescargarMediaWhatsApp(message.Document.Id);
                         if (fileBytes != null && fileBytes.Length > 0)
                         {
-                            // Inspección profunda de seguridad en RAM (Antivirus/Macros/XXE/Formula Injection)
-                            var docSecurity = securityService.ValidateAndExtractSpreadsheet(filename, fileBytes, mimeType);
-                            if (!docSecurity.IsSafe)
+                            // Subcaso C.1: Documentos PDF (Listas de requerimientos, proformas, unifilares, datasheets)
+                            if (ext == ".pdf" || mimeType == "application/pdf")
                             {
-                                Console.WriteLine($"[DOCUMENTO RECHAZADO POR SEGURIDAD] De: {numeroCliente} - Motivo: {docSecurity.Reason}");
-                                var advertenciaSeguridad = $"⚠️ No pudimos procesar el archivo adjunto: {docSecurity.Reason}\n\nSi deseas cotizar un listado de materiales de un proyecto, por favor envíanoslo en un archivo de Excel estándar (.xlsx) sin macros o compártenos el listado directamente en este chat para que la *Ing. Kely Pacalla* te ayude.";
-                                await EnviarMensajeWhatsApp(numeroCliente, advertenciaSeguridad);
+                                var pdfSecurity = securityService.ValidatePdfDocument(filename, fileBytes);
+                                if (!pdfSecurity.IsSafe)
+                                {
+                                    Console.WriteLine($"[PDF RECHAZADO POR SEGURIDAD] De: {numeroCliente} - Motivo: {pdfSecurity.Reason}");
+                                    var advertenciaSeguridad = $"⚠️ No pudimos procesar el archivo PDF: {pdfSecurity.Reason}\n\nPor favor asegúrate de enviar un documento PDF válido y sin contraseñas, o compártenos el listado directamente en este chat para que la *Ing. Kely Pacalla* te atienda.";
+                                    await EnviarMensajeWhatsApp(numeroCliente, advertenciaSeguridad);
+                                }
+                                else
+                                {
+                                    var textoConsulta = string.IsNullOrWhiteSpace(caption)
+                                        ? "Por favor revisa el documento PDF adjunto con los requerimientos técnicos del proyecto. Identifica las referencias, equipos o materiales eléctricos, su compatibilidad con nuestro catálogo y deriva el requerimiento a cotización formal."
+                                        : caption;
+
+                                    var respuestaIa = await ConsultarGemini(numeroCliente, textoConsulta, dbService, securityService, fileBytes, "application/pdf", null);
+                                    Console.WriteLine($"[RESPUESTA GEMINI PDF] Para: {numeroCliente} - Respuesta: {respuestaIa}");
+
+                                    await EnviarMensajeWhatsApp(numeroCliente, respuestaIa);
+                                }
                             }
+                            // Subcaso C.2: Hojas de Cálculo (Excel / CSV)
                             else
                             {
-                                var textoConsulta = string.IsNullOrWhiteSpace(caption)
-                                    ? $"Adjunto lista de requerimientos del proyecto en hoja de cálculo ({docSecurity.ExtractedRowCount} ítems leídos). Por favor revisa los materiales, confirma referencias de catálogo y deriva a cotización formal."
-                                    : caption;
+                                // Inspección profunda de seguridad en RAM (Antivirus/Macros/XXE/Formula Injection)
+                                var docSecurity = securityService.ValidateAndExtractSpreadsheet(filename, fileBytes, mimeType);
+                                if (!docSecurity.IsSafe)
+                                {
+                                    Console.WriteLine($"[DOCUMENTO RECHAZADO POR SEGURIDAD] De: {numeroCliente} - Motivo: {docSecurity.Reason}");
+                                    var advertenciaSeguridad = $"⚠️ No pudimos procesar el archivo adjunto: {docSecurity.Reason}\n\nSi deseas cotizar un listado de materiales de un proyecto, por favor envíanoslo en un archivo de Excel estándar (.xlsx), PDF (.pdf) o compártenos el listado directamente en este chat para que la *Ing. Kely Pacalla* te ayude.";
+                                    await EnviarMensajeWhatsApp(numeroCliente, advertenciaSeguridad);
+                                }
+                                else
+                                {
+                                    var textoConsulta = string.IsNullOrWhiteSpace(caption)
+                                        ? $"Adjunto lista de requerimientos del proyecto en hoja de cálculo ({docSecurity.ExtractedRowCount} ítems leídos). Por favor revisa los materiales, confirma referencias de catálogo y deriva a cotización formal."
+                                        : caption;
 
-                                var respuestaIa = await ConsultarGemini(numeroCliente, textoConsulta, dbService, securityService, null, null, docSecurity.ExtractedTextContent);
-                                Console.WriteLine($"[RESPUESTA GEMINI DOCUMENTO] Para: {numeroCliente} - Respuesta: {respuestaIa}");
+                                    var respuestaIa = await ConsultarGemini(numeroCliente, textoConsulta, dbService, securityService, null, null, docSecurity.ExtractedTextContent);
+                                    Console.WriteLine($"[RESPUESTA GEMINI DOCUMENTO] Para: {numeroCliente} - Respuesta: {respuestaIa}");
 
-                                await EnviarMensajeWhatsApp(numeroCliente, respuestaIa);
+                                    await EnviarMensajeWhatsApp(numeroCliente, respuestaIa);
+                                }
                             }
                         }
                         else
@@ -358,12 +385,12 @@ async Task<string> ConsultarGemini(
             """;
 
         // Directiva estricta de defensa contra Visual Prompt Injections (Inyecciones de prompt en imágenes)
-        var directivaSeguridadVisual = imageBytes != null
+        var directivaSeguridadVisual = imageBytes != null && imageMimeType != "application/pdf"
             ? SecurityService.GetMultimodalVisualPromptPolicy()
             : string.Empty;
 
-        // Directiva estricta de defensa contra Indirect Prompt Injections en Documentos de Proyecto
-        var directivaSeguridadDocumento = !string.IsNullOrWhiteSpace(documentContext)
+        // Directiva estricta de defensa contra Indirect Prompt Injections en Documentos de Proyecto (Excel, CSV, PDF)
+        var directivaSeguridadDocumento = (!string.IsNullOrWhiteSpace(documentContext) || imageMimeType == "application/pdf")
             ? SecurityService.GetDocumentSecurityPolicy()
             : string.Empty;
 
@@ -439,9 +466,11 @@ async Task<string> ConsultarGemini(
         var respuestaFinal = outputCheck.CleanText;
 
         // 6. Guardar la conversación en SQLite para persistir la memoria
-        var msgHistorial = imageBytes != null 
-            ? $"[Fotografía técnica adjunta] {mensajeCliente}" 
-            : (!string.IsNullOrWhiteSpace(documentContext) ? $"[Documento Excel/CSV de proyecto adjunto] {mensajeCliente}" : mensajeCliente);
+        var msgHistorial = imageMimeType == "application/pdf"
+            ? $"[Documento PDF de proyecto adjunto] {mensajeCliente}"
+            : (imageBytes != null 
+                ? $"[Fotografía técnica adjunta] {mensajeCliente}" 
+                : (!string.IsNullOrWhiteSpace(documentContext) ? $"[Documento Excel/CSV de proyecto adjunto] {mensajeCliente}" : mensajeCliente));
         await dbService.SaveMessageAsync(numeroCliente, "user", msgHistorial);
         await dbService.SaveMessageAsync(numeroCliente, "model", respuestaFinal);
 
