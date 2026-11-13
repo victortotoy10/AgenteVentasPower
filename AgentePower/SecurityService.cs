@@ -212,7 +212,37 @@ public class SecurityService
             sanitizedOutput = MarkdownImageExfilRegex.Replace(sanitizedOutput, "[Enlace de imagen omitido por seguridad]");
         }
 
+        // 3. Normalización y pulido estricto para WhatsApp (eliminar dobles asteriscos)
+        sanitizedOutput = FormatForWhatsApp(sanitizedOutput);
+
         return new SecurityOutputResult(true, null, sanitizedOutput);
+    }
+
+    /// <summary>
+    /// Normaliza la sintaxis Markdown a formato limpio y nativo de WhatsApp.
+    /// Convierte negritas dobles (**texto**) en negritas simples (*texto*) para evitar
+    /// que WhatsApp muestre asteriscos sueltos o residuales en pantalla.
+    /// </summary>
+    public static string FormatForWhatsApp(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+
+        // A. Convertir encabezados Markdown (# Titulo, ## Titulo) en negrita limpia (*Titulo*)
+        text = Regex.Replace(text, @"(?m)^#{1,6}\s*(.+)$", "*$1*");
+
+        // B. Reemplazar viñetas con asterisco/guión ('*   item' o '- item') por viñeta limpia Unicode '• item'
+        text = Regex.Replace(text, @"(?m)^\s*[\*\-]\s+(.+)$", "• $1");
+
+        // C. Normalizar negritas triples o cuádruples (***texto***) a negrita simple de WhatsApp (*texto*)
+        text = Regex.Replace(text, @"\*{3,}([^\*\r\n]+?)\*{3,}", "*$1*");
+
+        // D. Normalizar negritas dobles de Markdown (**texto**) a negrita simple de WhatsApp (*texto*)
+        text = Regex.Replace(text, @"\*{2}([^\*\r\n]+?)\*{2}", "*$1*");
+
+        // E. Limpiar secuencias accidentales de dos o más asteriscos continuos
+        text = Regex.Replace(text, @"\*{2,}", "*");
+
+        return text.Trim();
     }
 
     /// <summary>
