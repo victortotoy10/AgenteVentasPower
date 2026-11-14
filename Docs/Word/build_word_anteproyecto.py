@@ -5,92 +5,312 @@ from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
+from docx.enum.section import WD_SECTION, WD_ORIENT
+from docx.oxml import OxmlElement, parse_xml
+from docx.oxml.ns import nsdecls, qn
+
+def enable_update_fields(doc):
+    """Enables w:updateFields in word/settings.xml so Word automatically refreshes fields on open."""
+    settings = doc.settings.element
+    update_fields = settings.find(qn('w:updateFields'))
+    if update_fields is None:
+        update_fields = OxmlElement('w:updateFields')
+        update_fields.set(qn('w:val'), 'true')
+        settings.append(update_fields)
+    else:
+        update_fields.set(qn('w:val'), 'true')
+
+def add_header_page_number(section, fmt="decimal", start=None):
+    """Configures right-aligned PAGE field in section header."""
+    header = section.header
+    header.is_linked_to_previous = False
+    p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    p.text = ""
+    
+    r = p.add_run()
+    r.font.name = 'Times New Roman'
+    r.font.size = Pt(11)
+    r.font.color.rgb = RGBColor(0, 0, 0)
+    
+    fc_b = OxmlElement('w:fldChar')
+    fc_b.set(qn('w:fldCharType'), 'begin')
+    r._r.append(fc_b)
+    
+    it = OxmlElement('w:instrText')
+    it.set(qn('xml:space'), 'preserve')
+    it.text = "PAGE"
+    r._r.append(it)
+    
+    fc_s = OxmlElement('w:fldChar')
+    fc_s.set(qn('w:fldCharType'), 'separate')
+    r._r.append(fc_s)
+    
+    fc_e = OxmlElement('w:fldChar')
+    fc_e.set(qn('w:fldCharType'), 'end')
+    r._r.append(fc_e)
+    
+    sectPr = section._sectPr
+    pgNumType = sectPr.find(qn('w:pgNumType'))
+    if pgNumType is None:
+        pgNumType = OxmlElement('w:pgNumType')
+        sectPr.append(pgNumType)
+    pgNumType.set(qn('w:fmt'), fmt)
+    if start is not None:
+        pgNumType.set(qn('w:start'), str(start))
+
+def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
+    """
+    Creates a native Word dynamic TOC field (fldChar begin/separate/end) with dot leaders.
+    """
+    p_title = doc.add_paragraph()
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_title.paragraph_format.space_before = Pt(14)
+    p_title.paragraph_format.space_after = Pt(12)
+    p_title.paragraph_format.keep_with_next = True
+    r_title = p_title.add_run(title)
+    r_title.bold = True
+    r_title.font.name = 'Times New Roman'
+    r_title.font.size = Pt(14)
+    r_title.font.color.rgb = RGBColor(0, 0, 0)
+    
+    p_first = doc.add_paragraph()
+    pPr = p_first._p.get_or_add_pPr()
+    
+    tabs = OxmlElement('w:tabs')
+    tab = OxmlElement('w:tab')
+    tab.set(qn('w:val'), 'right')
+    tab.set(qn('w:leader'), 'dot')
+    tab.set(qn('w:pos'), '9062')
+    tabs.append(tab)
+    pPr.append(tabs)
+    
+    p_first.paragraph_format.space_before = Pt(0)
+    p_first.paragraph_format.space_after = Pt(4)
+    p_first.paragraph_format.line_spacing = 1.15
+    
+    r_begin = p_first.add_run()
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+    r_begin._r.append(fldChar1)
+    
+    r_instr = p_first.add_run()
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = instr_text
+    r_instr._r.append(instrText)
+    
+    r_sep = p_first.add_run()
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'separate')
+    r_sep._r.append(fldChar2)
+    
+    if sample_entries:
+        entry_text, entry_page, entry_level = sample_entries[0]
+        r_text = p_first.add_run(entry_text)
+        r_text.font.name = 'Times New Roman'
+        r_text.font.size = Pt(11)
+        r_text.font.color.rgb = RGBColor(0, 0, 0)
+        
+        r_tab = p_first.add_run()
+        r_tab._r.append(OxmlElement('w:tab'))
+        
+        r_pg = p_first.add_run(str(entry_page))
+        r_pg.font.name = 'Times New Roman'
+        r_pg.font.size = Pt(11)
+        r_pg.font.color.rgb = RGBColor(0, 0, 0)
+        
+        for entry_text, entry_page, entry_level in sample_entries[1:]:
+            p_entry = doc.add_paragraph()
+            pPr_e = p_entry._p.get_or_add_pPr()
+            tabs_e = OxmlElement('w:tabs')
+            tab_e = OxmlElement('w:tab')
+            tab_e.set(qn('w:val'), 'right')
+            tab_e.set(qn('w:leader'), 'dot')
+            tab_e.set(qn('w:pos'), '9062')
+            tabs_e.append(tab_e)
+            pPr_e.append(tabs_e)
+            
+            p_entry.paragraph_format.space_before = Pt(0)
+            p_entry.paragraph_format.space_after = Pt(4)
+            p_entry.paragraph_format.line_spacing = 1.15
+            if entry_level == 2:
+                p_entry.paragraph_format.left_indent = Inches(0.25)
+            elif entry_level == 3:
+                p_entry.paragraph_format.left_indent = Inches(0.5)
+                
+            r_t = p_entry.add_run(entry_text)
+            r_t.font.name = 'Times New Roman'
+            r_t.font.size = Pt(11)
+            r_t.font.color.rgb = RGBColor(0, 0, 0)
+            
+            r_tb = p_entry.add_run()
+            r_tb._r.append(OxmlElement('w:tab'))
+            
+            r_p = p_entry.add_run(str(entry_page))
+            r_p.font.name = 'Times New Roman'
+            r_p.font.size = Pt(11)
+            r_p.font.color.rgb = RGBColor(0, 0, 0)
+            
+    p_end = doc.add_paragraph()
+    p_end.paragraph_format.space_before = Pt(0)
+    p_end.paragraph_format.space_after = Pt(6)
+    r_end = p_end.add_run()
+    fldChar3 = OxmlElement('w:fldChar')
+    fldChar3.set(qn('w:fldCharType'), 'end')
+    r_end._r.append(fldChar3)
+
+def add_caption_with_seq(doc, label_type, num, caption_text):
+    """
+    Creates an APA 7 caption with SEQ field: 'Tabla 1' or 'Figura 1' + title on next line.
+    """
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(14)
+    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.line_spacing = 1.15
+    p.paragraph_format.keep_with_next = True
+    
+    r_lbl = p.add_run(f"{label_type} ")
+    r_lbl.bold = True
+    r_lbl.font.name = 'Times New Roman'
+    r_lbl.font.size = Pt(11)
+    
+    r_b = p.add_run()
+    fc_b = OxmlElement('w:fldChar')
+    fc_b.set(qn('w:fldCharType'), 'begin')
+    r_b._r.append(fc_b)
+    
+    r_i = p.add_run()
+    it = OxmlElement('w:instrText')
+    it.set(qn('xml:space'), 'preserve')
+    it.text = f" SEQ {label_type} \\* ARABIC "
+    r_i._r.append(it)
+    
+    r_s = p.add_run()
+    fc_s = OxmlElement('w:fldChar')
+    fc_s.set(qn('w:fldCharType'), 'separate')
+    r_s._r.append(fc_s)
+    
+    r_v = p.add_run(str(num))
+    r_v.bold = True
+    r_v.font.name = 'Times New Roman'
+    r_v.font.size = Pt(11)
+    
+    r_e = p.add_run()
+    fc_e = OxmlElement('w:fldChar')
+    fc_e.set(qn('w:fldCharType'), 'end')
+    r_e._r.append(fc_e)
+    
+    r_br = p.add_run()
+    r_br._r.append(OxmlElement('w:br'))
+    
+    r_txt = p.add_run(f"{caption_text}")
+    r_txt.italic = True
+    r_txt.font.name = 'Times New Roman'
+    r_txt.font.size = Pt(11)
+    
+    return p
+
+def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcMar = OxmlElement('w:tcMar')
+    for m, val in [('top', top), ('bottom', bottom), ('left', left), ('right', right)]:
+        node = OxmlElement(f'w:{m}')
+        node.set(qn('w:w'), str(val))
+        node.set(qn('w:type'), 'dxa')
+        tcMar.append(node)
+    tcPr.append(tcMar)
+
+def set_cell_border(cell, **kwargs):
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcBorders = OxmlElement('w:tcBorders')
+    for edge in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+        edge_data = kwargs.get(edge)
+        if edge_data:
+            tag = f'w:{edge}'
+            element = OxmlElement(tag)
+            element.set(qn('w:val'), edge_data.get('val', 'single'))
+            element.set(qn('w:sz'), str(edge_data.get('sz', 4)))
+            element.set(qn('w:space'), '0')
+            element.set(qn('w:color'), edge_data.get('color', 'auto'))
+            tcBorders.append(element)
+    tcPr.append(tcBorders)
 
 def create_anteproyecto_word(output_paths):
     doc = Document()
+    base_dir = r"c:\Users\lenovo\Desktop\AgenteVentasPower"
 
-    # --- Configuración de Márgenes (APA 7.ª edición: 2.54 cm / 1 pulgada en todos los lados) ---
-    for section in doc.sections:
-        section.top_margin = Inches(1.0)
-        section.bottom_margin = Inches(1.0)
-        section.left_margin = Inches(1.0)
-        section.right_margin = Inches(1.0)
-        section.page_width = Inches(8.5)   # Carta (Letter)
-        section.page_height = Inches(11.0)
+    # =========================================================================
+    # CONFIGURACIÓN GENERAL Y ESTILOS NATIVOS
+    # =========================================================================
+    enable_update_fields(doc)
 
-    # --- Estilo Base Normal (Times New Roman 12pt, color negro formal) ---
-    style_normal = doc.styles['Normal']
-    font = style_normal.font
-    font.name = 'Times New Roman'
-    font.size = Pt(12)
-    font.color.rgb = RGBColor(0, 0, 0)
+    # Configuración de estilos para que Word reconozca Headings en TOC
+    styles = doc.styles
 
-    # --- Funciones Auxiliares de Formato XML ---
-    def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
-        tcPr = cell._tc.get_or_add_tcPr()
-        tcMar = OxmlElement('w:tcMar')
-        for m, val in [('top', top), ('bottom', bottom), ('left', left), ('right', right)]:
-            node = OxmlElement(f'w:{m}')
-            node.set(qn('w:w'), str(val))
-            node.set(qn('w:type'), 'dxa')
-            tcMar.append(node)
-        tcPr.append(tcMar)
+    # Normal Style (Times New Roman 12 pt, 1.5 interlineado)
+    style_normal = styles['Normal']
+    font_normal = style_normal.font
+    font_normal.name = 'Times New Roman'
+    font_normal.size = Pt(12)
+    font_normal.color.rgb = RGBColor(0, 0, 0)
 
-    def set_cell_border(cell, **kwargs):
-        tcPr = cell._tc.get_or_add_tcPr()
-        tcBorders = OxmlElement('w:tcBorders')
-        for edge in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
-            edge_data = kwargs.get(edge)
-            if edge_data:
-                tag = f'w:{edge}'
-                element = OxmlElement(tag)
-                element.set(qn('w:val'), edge_data.get('val', 'single'))
-                element.set(qn('w:sz'), str(edge_data.get('sz', 4)))
-                element.set(qn('w:space'), '0')
-                element.set(qn('w:color'), edge_data.get('color', 'auto'))
-                tcBorders.append(element)
-        tcPr.append(tcBorders)
+    # Heading 1
+    h1 = styles['Heading 1']
+    h1.font.name = 'Times New Roman'
+    h1.font.size = Pt(13)
+    h1.font.bold = True
+    h1.font.color.rgb = RGBColor(0, 51, 102)
+    h1_pPr = h1.element.get_or_add_pPr()
+    if h1_pPr.find(qn('w:outlineLvl')) is None:
+        h1_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="0"/>' % nsdecls('w')))
 
+    # Heading 2
+    h2 = styles['Heading 2']
+    h2.font.name = 'Times New Roman'
+    h2.font.size = Pt(12)
+    h2.font.bold = True
+    h2.font.color.rgb = RGBColor(0, 0, 0)
+    h2_pPr = h2.element.get_or_add_pPr()
+    if h2_pPr.find(qn('w:outlineLvl')) is None:
+        h2_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="1"/>' % nsdecls('w')))
+
+    # Heading 3
+    h3 = styles['Heading 3']
+    h3.font.name = 'Times New Roman'
+    h3.font.size = Pt(11.5)
+    h3.font.bold = True
+    h3.font.italic = True
+    h3.font.color.rgb = RGBColor(30, 30, 30)
+    h3_pPr = h3.element.get_or_add_pPr()
+    if h3_pPr.find(qn('w:outlineLvl')) is None:
+        h3_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="2"/>' % nsdecls('w')))
+
+    # Helpers de adición de elementos
     def add_h1(text):
-        p = doc.add_paragraph()
+        p = doc.add_paragraph(text, style='Heading 1')
         p.paragraph_format.space_before = Pt(18)
         p.paragraph_format.space_after = Pt(6)
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.keep_with_next = True
-        run = p.add_run(text)
-        run.font.name = 'Times New Roman'
-        run.font.size = Pt(13)
-        run.font.bold = True
-        run.font.color.rgb = RGBColor(0, 51, 102)
         return p
 
     def add_h2(text):
-        p = doc.add_paragraph()
+        p = doc.add_paragraph(text, style='Heading 2')
         p.paragraph_format.space_before = Pt(14)
         p.paragraph_format.space_after = Pt(4)
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.keep_with_next = True
-        run = p.add_run(text)
-        run.font.name = 'Times New Roman'
-        run.font.size = Pt(12)
-        run.font.bold = True
-        run.font.color.rgb = RGBColor(30, 30, 30)
         return p
 
     def add_h3(text):
-        p = doc.add_paragraph()
+        p = doc.add_paragraph(text, style='Heading 3')
         p.paragraph_format.space_before = Pt(10)
         p.paragraph_format.space_after = Pt(3)
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.keep_with_next = True
-        run = p.add_run(text)
-        run.font.name = 'Times New Roman'
-        run.font.size = Pt(11.5)
-        run.font.bold = True
-        run.font.italic = True
-        run.font.color.rgb = RGBColor(50, 50, 50)
         return p
 
     def add_p(text, bold_prefix=None, indent=True):
@@ -145,27 +365,6 @@ def create_anteproyecto_word(output_paths):
         r.font.size = Pt(11.5)
         return p
 
-    def add_caption(fig_table_label, title_text):
-        p1 = doc.add_paragraph()
-        p1.paragraph_format.space_before = Pt(14)
-        p1.paragraph_format.space_after = Pt(2)
-        p1.paragraph_format.line_spacing = 1.0
-        p1.paragraph_format.keep_with_next = True
-        r1 = p1.add_run(fig_table_label)
-        r1.font.name = 'Times New Roman'
-        r1.font.size = Pt(11)
-        r1.font.bold = True
-
-        p2 = doc.add_paragraph()
-        p2.paragraph_format.space_before = Pt(2)
-        p2.paragraph_format.space_after = Pt(6)
-        p2.paragraph_format.line_spacing = 1.0
-        p2.paragraph_format.keep_with_next = True
-        r2 = p2.add_run(title_text)
-        r2.font.name = 'Times New Roman'
-        r2.font.size = Pt(11)
-        r2.font.italic = True
-
     def add_note(note_text):
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(4)
@@ -179,11 +378,17 @@ def create_anteproyecto_word(output_paths):
         r2.font.name = 'Times New Roman'
         r2.font.size = Pt(10)
 
-    base_dir = r"c:\Users\lenovo\Desktop\AgenteVentasPower"
+    # =========================================================================
+    # SECCIÓN 0: CARÁTULA OFICIAL (Sin encabezado ni pie)
+    # =========================================================================
+    sec_cover = doc.sections[0]
+    sec_cover.top_margin = Inches(1.0)
+    sec_cover.bottom_margin = Inches(1.0)
+    sec_cover.left_margin = Inches(1.0)
+    sec_cover.right_margin = Inches(1.0)
+    sec_cover.page_width = Inches(8.5)
+    sec_cover.page_height = Inches(11.0)
 
-    # =========================================================================
-    # CARÁTULA OFICIAL
-    # =========================================================================
     p_logo = doc.add_paragraph()
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
     logo_path = os.path.join(base_dir, 'Docs', 'images', 'Logo_UPS.png')
@@ -287,114 +492,80 @@ def create_anteproyecto_word(output_paths):
     r.font.name = 'Times New Roman'
     r.font.size = Pt(11)
 
+    # =========================================================================
+    # SECCIÓN 1: ÍNDICES DINÁMICOS NATIVOS (Páginas i, ii, iii...)
+    # =========================================================================
+    sec_indices = doc.add_section(WD_SECTION.NEW_PAGE)
+    sec_indices.top_margin = Inches(1.0)
+    sec_indices.bottom_margin = Inches(1.0)
+    sec_indices.left_margin = Inches(1.0)
+    sec_indices.right_margin = Inches(1.0)
+    add_header_page_number(sec_indices, fmt="lowerRoman", start=1)
+
+    # 1. Índice General (TOC dinámico nativo)
+    sample_toc = [
+        ("1. Tema del Trabajo de Titulación", 1, 1),
+        ("2. Antecedentes", 1, 1),
+        ("3. Justificación", 3, 1),
+        ("4. Objetivos", 5, 1),
+        ("4.1. Objetivo General", 5, 2),
+        ("4.2. Objetivos Específicos", 5, 2),
+        ("5. Marco hipotético o preguntas de investigación", 6, 1),
+        ("5.1. Preguntas de investigación", 6, 2),
+        ("5.2. Hipótesis de investigación", 6, 2),
+        ("6. Marco teórico referencial", 7, 1),
+        ("6.1. Agentes conversacionales en la atención comercial", 7, 2),
+        ("6.2. Modelos generativos de lenguaje extenso y arquitectura de agentes", 8, 2),
+        ("6.3. Recuperación aumentada, bases de datos embebidas y estándares de ingeniería", 9, 2),
+        ("7. Metodología / Propuesta de desarrollo", 10, 1),
+        ("8. Cronograma de actividades", 14, 1),
+        ("9. Presupuesto del proyecto de titulación", 15, 1),
+        ("10. Referencias bibliográficas", 17, 1),
+        ("11. Anexos", 20, 1),
+        ("11.1. Anexo 1: Árbol de problemas y objetivos (Metodología 5W+H)", 20, 2),
+        ("11.2. Anexo 2: Matriz de consistencia metodológica de la investigación (UPS P69)", 23, 2),
+        ("11.3. Anexo 3: Diagrama de arquitectura de software y flujo de procesamiento", 24, 2),
+        ("11.4. Anexo 4: Repositorio de código abierto y transparencia de datos (ABET IV.3)", 26, 2)
+    ]
+    add_dynamic_toc_field(doc, "Índice General", 'TOC \\h \\o "1-2"', sample_toc)
+
+    # Salto de página para Índice de Figuras
     doc.add_page_break()
-
-    # =========================================================================
-    # ÍNDICES (GENERAL, FIGURAS, TABLAS)
-    # =========================================================================
-    add_h1("Índice General")
-    indices = [
-        ("1. Tema del Trabajo de Titulación", "1"),
-        ("2. Antecedentes", "1"),
-        ("3. Justificación", "3"),
-        ("4. Objetivos", "5"),
-        ("    4.1. Objetivo General", "5"),
-        ("    4.2. Objetivos Específicos", "5"),
-        ("5. Marco hipotético o preguntas de investigación", "6"),
-        ("    5.1. Preguntas de investigación", "6"),
-        ("    5.2. Hipótesis de investigación", "6"),
-        ("6. Marco teórico referencial", "7"),
-        ("    6.1. Agentes conversacionales en la atención comercial", "7"),
-        ("    6.2. Modelos generativos de lenguaje extenso y arquitectura de agentes", "8"),
-        ("    6.3. Recuperación aumentada, bases de datos embebidas y estándares de ingeniería", "9"),
-        ("7. Metodología / Propuesta de desarrollo", "10"),
-        ("8. Cronograma de actividades", "14"),
-        ("9. Presupuesto del proyecto de titulación", "15"),
-        ("10. Referencias bibliográficas", "17"),
-        ("11. Anexos", "20"),
-        ("    11.1. Anexo 1: Árbol de problemas y objetivos (Metodología 5W+H)", "20"),
-        ("    11.2. Anexo 2: Matriz de consistencia metodológica de la investigación (UPS P69)", "23"),
-        ("    11.3. Anexo 3: Diagrama de arquitectura de software y flujo de procesamiento", "24"),
-        ("    11.4. Anexo 4: Repositorio de código abierto y transparencia de datos (ABET IV.3)", "26")
+    sample_figuras = [
+        ("Figura 1 Diagrama de flujo de las fases de la metodología de investigación", 13, 1),
+        ("Figura 2 Árbol de problemas de la atención comercial en distribuidoras eléctricas", 21, 1),
+        ("Figura 3 Árbol de objetivos de la solución de ingeniería de software", 22, 1),
+        ("Figura 4 Arquitectura integral del agente inteligente para la atención comercial con recuperación local de catálogos", 25, 1)
     ]
-    for item, page in indices:
-        p = doc.add_paragraph()
-        p.paragraph_format.line_spacing = 1.15
-        p.paragraph_format.space_after = Pt(2)
-        r1 = p.add_run(item)
-        r1.font.name = 'Times New Roman'
-        r1.font.size = Pt(11)
-        dots = " ." * int((68 - len(item)) / 2)
-        r_dots = p.add_run(dots + " ")
-        r_dots.font.name = 'Times New Roman'
-        r_dots.font.size = Pt(9)
-        r_dots.font.color.rgb = RGBColor(120, 120, 120)
-        r2 = p.add_run(page)
-        r2.font.name = 'Times New Roman'
-        r2.font.size = Pt(11)
-        r2.font.bold = True
+    add_dynamic_toc_field(doc, "Índice de figuras", 'TOC \\h \\c "Figura"', sample_figuras)
 
-    add_h2("Índice de Figuras")
-    figuras = [
-        ("Figura 1. Diagrama de flujo de las fases de la metodología de investigación", "13"),
-        ("Figura 2. Árbol de problemas de la atención comercial en distribuidoras eléctricas", "21"),
-        ("Figura 3. Árbol de objetivos de la solución de ingeniería de software", "22"),
-        ("Figura 4. Arquitectura integral del agente inteligente para la atención comercial", "25")
-    ]
-    for item, page in figuras:
-        p = doc.add_paragraph()
-        p.paragraph_format.line_spacing = 1.15
-        p.paragraph_format.space_after = Pt(2)
-        r1 = p.add_run(item)
-        r1.font.name = 'Times New Roman'
-        r1.font.size = Pt(10.5)
-        dots = " ." * int((74 - len(item)) / 2)
-        r_dots = p.add_run(dots + " ")
-        r_dots.font.name = 'Times New Roman'
-        r_dots.font.size = Pt(9)
-        r_dots.font.color.rgb = RGBColor(120, 120, 120)
-        r2 = p.add_run(page)
-        r2.font.name = 'Times New Roman'
-        r2.font.size = Pt(10.5)
-        r2.font.bold = True
-
-    add_h2("Índice de Tablas")
-    tablas = [
-        ("Tabla 1. Comparativa de trabajos previos en sistemas conversacionales", "2"),
-        ("Tabla 2. Cronograma de hitos institucionales y distribución de carga horaria", "14"),
-        ("Tabla 3. Plan de actividades por fases del proyecto de titulación", "14"),
-        ("Tabla 4. Presupuesto detallado y valoración económica de mercado del proyecto", "15"),
-        ("Tabla 5. Conciliación financiera y análisis operativo de servicios en la nube", "16"),
-        ("Tabla 6. Matriz de consistencia metodológica de la investigación (UPS P69)", "23")
-    ]
-    for item, page in tablas:
-        p = doc.add_paragraph()
-        p.paragraph_format.line_spacing = 1.15
-        p.paragraph_format.space_after = Pt(2)
-        r1 = p.add_run(item)
-        r1.font.name = 'Times New Roman'
-        r1.font.size = Pt(10.5)
-        dots = " ." * int((74 - len(item)) / 2)
-        r_dots = p.add_run(dots + " ")
-        r_dots.font.name = 'Times New Roman'
-        r_dots.font.size = Pt(9)
-        r_dots.font.color.rgb = RGBColor(120, 120, 120)
-        r2 = p.add_run(page)
-        r2.font.name = 'Times New Roman'
-        r2.font.size = Pt(10.5)
-        r2.font.bold = True
-
+    # Salto de página para Índice de Tablas
     doc.add_page_break()
+    sample_tablas = [
+        ("Tabla 1 Comparativa de trabajos previos en sistemas conversacionales para comercio técnico", 2, 1),
+        ("Tabla 2 Cronograma de hitos institucionales y distribución de carga horaria (800 horas de dedicación conjunta)", 14, 1),
+        ("Tabla 3 Plan de actividades por fases del proyecto de titulación", 14, 1),
+        ("Tabla 4 Presupuesto detallado y valoración económica de mercado del proyecto de titulación", 15, 1),
+        ("Tabla 5 Conciliación financiera y análisis operativo de servicios en la nube: Capa Gratuita vs. Régimen Comercial", 16, 1),
+        ("Tabla 6 Matriz de consistencia metodológica de la investigación (Formato Institucional UPS P69)", 23, 1)
+    ]
+    add_dynamic_toc_field(doc, "Índice de tablas", 'TOC \\h \\c "Tabla"', sample_tablas)
 
     # =========================================================================
-    # SECCIÓN 1: TEMA
+    # SECCIÓN 2: CUERPO PRINCIPAL (Páginas 1, 2, 3... en formato decimal)
     # =========================================================================
+    sec_body = doc.add_section(WD_SECTION.NEW_PAGE)
+    sec_body.top_margin = Inches(1.0)
+    sec_body.bottom_margin = Inches(1.0)
+    sec_body.left_margin = Inches(1.0)
+    sec_body.right_margin = Inches(1.0)
+    add_header_page_number(sec_body, fmt="decimal", start=1)
+
+    # --- SECCIÓN 1: TEMA ---
     add_h1("1. Tema del Trabajo de Titulación")
     add_p("Desarrollo de un agente inteligente con recuperación verificable de información técnica para la atención comercial y cotización en Power Electrimk", indent=False)
 
-    # =========================================================================
-    # SECCIÓN 2: ANTECEDENTES
-    # =========================================================================
+    # --- SECCIÓN 2: ANTECEDENTES ---
     add_h1("2. Antecedentes")
     add_p("Actualmente, el comercio conversacional a través de plataformas de mensajería instantánea constituye el canal preponderante de captación y venta técnica para las pequeñas y medianas empresas comerciales (Adamopoulou & Moussiades, 2020; Adam et al., 2021; Følstad et al., 2020; Luo et al., 2019). En el sector de la distribución de materiales eléctricos e ingeniería en la ciudad de Guayaquil, contratistas independientes, técnicos electricistas y empresas constructoras demandan cotizaciones inmediatas y continuas que involucran especificaciones rigurosas de marcas líderes como Schneider Electric, Siemens, Legrand, Centelsa y ABB. No obstante, este proceso se gestiona tradicionalmente de forma manual mediante asesores de mostrador que deben consultar dispersos catálogos en formato PDF y extensas hojas de cálculo de precios. En el marco del presente anteproyecto, se llevó a cabo un estudio de campo empírico en la distribuidora Power Electrimk durante el tercer trimestre de 2026, mediante el muestreo sistemático de 120 interacciones comerciales recibidas en el canal institucional de WhatsApp y entrevistas a su equipo comercial de ventas de mostrador (3 asesores técnicos). Dicha telemetría evidenció que el tiempo promedio de respuesta oscila entre 135 y 490 minutos (2,25 a 8,16 horas) en jornadas de alta demanda, ocasionando una tasa documentada de abandono de solicitud de cotización del 28,4% (con picos muestrales entre el 20% y el 35%), dado que los clientes técnicos migran hacia competidores con atención inmediata. De no implementarse mecanismos tecnológicos que sistematicen la atención, las distribuidoras enfrentan un incremento sostenido de sus costos operativos y el deterioro gradual de la fidelización de sus clientes (Llerena-Izquierdo & Ayala-Carabajo, 2022; Llerena-Izquierdo & Ayala-Carabajo, 2025).")
 
@@ -404,8 +575,8 @@ def create_anteproyecto_word(output_paths):
 
     add_p("Para resolver esta brecha, el presente proyecto técnico desarrollará un agente inteligente para la atención comercial y cotización de materiales eléctricos que integrará un modelo generativo multimodal con un mecanismo de recuperación local de catálogos estructurados sobre una base de datos embebida SQLite con registro en modo Write-Ahead Logging (Gaffney, 2022). El agente operará como un servicio web asíncrono en .NET 8 conectado a la API oficial de WhatsApp Cloud y al modelo fundacional Gemini, tomando como escenario experimental a la distribuidora Power Electrimk de la ciudad de Guayaquil. Siguiendo la línea de investigación de Ayala-Carabajo y Llerena-Izquierdo (2026) sobre dominios cognitivos y sistemas inteligentes, la propuesta automatiza el embudo de ventas técnicas anclando deterministamente cada consulta a registros verificables de catálogo, garantizando precios exactos, latencia de respuesta sub-cuatro segundos, trazabilidad del cliente y derivación asistida hacia asesores comerciales humanos con costos de infraestructura mínimos. En la Tabla 1 se presenta el análisis comparativo del estado del arte.")
 
-    # Tabla 1: Trabajos previos
-    add_caption("Tabla 1", "Comparativa de trabajos previos en sistemas conversacionales para comercio técnico")
+    # Tabla 1 con SEQ Tabla
+    add_caption_with_seq(doc, "Tabla", 1, "Comparativa de trabajos previos en sistemas conversacionales para comercio técnico")
     table1 = doc.add_table(rows=6, cols=4)
     table1.alignment = WD_TABLE_ALIGNMENT.CENTER
     headers = ["Autor", "Técnica base", "Ventajas identificadas", "Limitaciones operativas"]
@@ -436,9 +607,7 @@ def create_anteproyecto_word(output_paths):
 
     add_note("Elaboración propia a partir de la revisión sistemática de literatura sobre arquitecturas conversacionales.")
 
-    # =========================================================================
-    # SECCIÓN 3: JUSTIFICACIÓN
-    # =========================================================================
+    # --- SECCIÓN 3: JUSTIFICACIÓN ---
     add_h1("3. Justificación")
     add_p("La presente investigación se justifica por la imperiosa necesidad de transformar el proceso operativo de cotización y asesoramiento técnico de materiales eléctricos en las distribuidoras comerciales que gestionan sus ventas a través de mensajería instantánea. En el mercado ecuatoriano de suministros eléctricos, la inmediatez y la certeza técnica determinan el cierre comercial; no obstante, el personal de ventas invierte una fracción considerable de su jornada laboral consultando hojas de cálculo, archivos PDF desactualizados y listas impresas para responder preguntas repetitivas sobre marcas, calibres, amperajes y precios. La incorporación de un agente inteligente de ventas comerciales capaz de guiar al cliente en el embudo técnico, interpretar requerimientos conversacionales y emitir cotizaciones fácticas en tiempo real con datos verificables confiere una ventaja competitiva directa y mitiga el riesgo de pérdida de clientes por demoras en la atención.")
 
@@ -454,9 +623,7 @@ def create_anteproyecto_word(output_paths):
 
     add_p("El alcance del proyecto de titulación comprende la recopilación y estructuración de los catálogos multimarca de la distribuidora, el diseño del esquema relacional local, el desarrollo del servicio backend en .NET 8 con integración a WhatsApp Cloud API y al modelo generativo Gemini, el despliegue productivo en una instancia Linux de AWS con proxy inverso Nginx y certificados TLS, y la evaluación experimental cuantitativa de latencia, exactitud y consumo de recursos. Se delimita la solución a la asesoría técnica de compatibilidad, emisión de cotizaciones referenciales formales y captura estructurada de prospectos. Asimismo, la arquitectura de software se diseña de manera modular y extensible bajo principios SOLID, sentando las bases contractuales para una segunda fase tecnológica post-titulación que incorporará reconocimiento multimodal de piezas por imágenes fotográficas con Gemini Flash Vision, seguimiento comercial automatizado (follow-up), derivación asistida a asesores humanos mediante el patrón State y sincronización bidireccional con sistemas CRM. Quedan explícitamente excluidos del alcance del anteproyecto la recaudación de pagos directos mediante pasarelas financieras, la emisión de facturación electrónica reglamentada por el SRI y la conexión nativa con sistemas ERP legados, salvaguardando la viabilidad de ejecución dentro del límite normativo de 400 horas académicas de dedicación individual por cada estudiante (totalizando 800 horas conjuntas de esfuerzo de ingeniería).")
 
-    # =========================================================================
-    # SECCIÓN 4: OBJETIVOS
-    # =========================================================================
+    # --- SECCIÓN 4: OBJETIVOS ---
     add_h1("4. Objetivos")
     add_h2("4.1. Objetivo General")
     add_p("Desarrollar un agente inteligente con recuperación verificable de información técnica para la atención comercial y cotización en Power Electrimk, mediante la integración de modelos generativos y recuperación relacional determinista sobre catálogos técnicos estructurados, garantizando cotizaciones consistentes, trazabilidad de clientes y tiempos de respuesta ágiles.", indent=False)
@@ -467,9 +634,7 @@ def create_anteproyecto_word(output_paths):
     add_bullet("un prototipo de software en arquitectura ligera sobre .NET 8 que integre de forma desacoplada la API oficial de WhatsApp Cloud con verificación criptográfica de webhooks, el modelo fundacional Gemini para comprensión de lenguaje natural, una compuerta determinista de cálculo financiero y un motor de base de datos embebido SQLite con registro en modo Write-Ahead Logging para consultas estructuradas, serialización de escrituras y persistencia de memoria de sesión comercial.", bold_prefix="• Implementar ")
     add_bullet("el desempeño computacional, la exactitud fáctica y la efectividad operativa del prototipo mediante pruebas experimentales controladas y una validación funcional con asesores comerciales de Power Electrimk, contrastando el agente con recuperación local frente al modelo sin recuperación sobre una batería de pruebas que contemple casos ambiguos, códigos inexistentes y referencias desactualizadas, cuantificando la exactitud de precios, la mitigación de alucinaciones, la latencia P95 y la usabilidad percibida.", bold_prefix="• Evaluar ")
 
-    # =========================================================================
-    # SECCIÓN 5: PREGUNTAS E HIPÓTESIS
-    # =========================================================================
+    # --- SECCIÓN 5: PREGUNTAS E HIPÓTESIS ---
     add_h1("5. Marco hipotético o preguntas de investigación")
     add_p("En concordancia con la matriz metodológica institucional UPS P69 y los objetivos específicos planteados, se formulan las preguntas de sistematización del problema y las correspondientes hipótesis de ingeniería que guiarán la investigación experimental.")
 
@@ -485,9 +650,7 @@ def create_anteproyecto_word(output_paths):
     add_p("Una arquitectura asíncrona desacoplada en .NET 8 con control de concurrencia mediante cola de escrituras serializadas para SQLite y deduplicación idempotente de mensajes permite procesar ráfagas de webhooks de WhatsApp Cloud API sin bloqueos de contención de base de datos, manteniendo la memoria de proceso contenida por debajo de 250 megabytes.", bold_prefix="Hipótesis Específica 2 (H2). ", indent=False)
     add_p("El agente comercial con recuperación fáctica determinista y compuerta de validación en backend exhibirá una tasa de alucinación significativamente menor (H_rate <= 2%, con significancia estadística p < 0,05) y una exactitud de cotización (Acc_cot >= 95%) estadísticamente superior en comparación con el modelo generativo operando en modalidad directa sin recuperación contextual, contrastado mediante una batería experimental ampliada de N = 120 pruebas que abarca casos ambiguos, códigos inexistentes, productos incompatibles y referencias desactualizadas.", bold_prefix="Hipótesis Específica 3 (H3). ", indent=False)
 
-    # =========================================================================
-    # SECCIÓN 6: MARCO TEÓRICO
-    # =========================================================================
+    # --- SECCIÓN 6: MARCO TEÓRICO ---
     add_h1("6. Marco teórico referencial")
     add_p("Esta sección fundamenta conceptualmente la formulación del artefacto de software propuesto, estructurando los conocimientos de manera deductiva desde los paradigmas de interacción hasta los mecanismos de persistencia y los estándares de ingeniería de software que rigen su implementación. Los contenidos se organizan en torno a tres constructos esenciales: los agentes conversacionales en la atención comercial, los modelos generativos de lenguaje extenso, y las técnicas de recuperación aumentada sobre motores embebidos.")
 
@@ -506,9 +669,7 @@ def create_anteproyecto_word(output_paths):
 
     add_p("Asimismo, la construcción del artefacto se gobierna bajo el estándar internacional de calidad de producto software ISO/IEC 25010:2011, priorizando las características de adecuación funcional, eficiencia de desempeño (tiempo de respuesta y utilización de recursos), fiabilidad y seguridad (ISO/IEC, 2011). La seguridad de la información en el canal de mensajería se garantiza mediante el protocolo TLS 1.3 (RFC 8446) para el cifrado en tránsito (Rescorla, 2018), complementado con la verificación de firmas criptográficas HMAC-SHA256 exigida por WhatsApp Cloud API para autenticar la legitimidad de cada webhook entrante y la deduplicación idempotente de identificadores de mensaje (wamid) para evitar procesamientos dobles. Frente a los vectores emergentes de vulnerabilidad en modelos generativos, se implementa una arquitectura de defensa en profundidad contra inyecciones de prompt indirectas (Indirect Prompt Injection) en documentos técnicos e imágenes fotográficas (Greshake et al., 2023), aplicando neutralización de inyección de fórmulas de hoja de cálculo, prevención de entidades externas XML (XXE), delimitación estricta de contexto y verificación de salida mediante tokens centinela (canary tokens). Estos fundamentos teóricos, metodológicos y normativos proporcionan el marco de referencia indispensable sobre el cual se articula la propuesta de desarrollo técnico descrita en la siguiente sección.")
 
-    # =========================================================================
-    # SECCIÓN 7: METODOLOGÍA
-    # =========================================================================
+    # --- SECCIÓN 7: METODOLOGÍA ---
     add_h1("7. Metodología / Propuesta de desarrollo")
     add_p("La presente investigación adopta un alcance descriptivo y aplicado, bajo un enfoque metodológico mixto predominantemente cuantitativo y con un diseño cuasi-experimental de corte transversal. Según su propósito, constituye una investigación tecnológica orientada a la concepción, ingeniería y validación empírica de un artefacto de software; según el método de inferencia, es de naturaleza deductiva al derivar hipótesis operativas a partir de constructos teóricos consolidados; según la procedencia de la información, combina fuentes secundarias documentales (catálogos de fabricantes, especificaciones técnicas y literatura científica indexada) con datos primarios generados durante las pruebas automatizadas del sistema. La recolección de datos se sustentará en el registro automatizado de trazas de telemetría y métricas de rendimiento en servidor, complementado con entrevistas semiestructuradas al equipo comercial para el levantamiento de requerimientos de dominio (Llerena-Izquierdo & Ayala-Carabajo, 2022).")
 
@@ -519,8 +680,8 @@ def create_anteproyecto_word(output_paths):
     add_bullet("El prototipo se desplegará en una instancia virtual Linux (Ubuntu 24.04.5 LTS) en Amazon Web Services (AWS EC2 t2.micro, acogida a la Capa Gratuita de 750 horas mensuales), configurando un servidor Nginx como proxy inverso hacia el runtime Kestrel en puerto 5252, administrado por el demonio Systemd (agenteventas.service) y con terminación de certificados de seguridad TLS 1.3 emitidos por Certbot (Let's Encrypt) bajo el subdominio oficial agente.powerelectrimk.com. Se ejecutará un protocolo experimental automatizado compuesto por una batería ampliada de N = 120 casos de prueba estructurados en seis cuadrantes de evaluación: (1) consultas de sintaxis directa por código de fabricante exacto (n=20), (2) consultas con ambigüedad semántica o especificaciones parciales (n=20), (3) solicitudes con variaciones léxicas coloquiales de electricistas (n=20), (4) solicitudes con códigos inexistentes o truncados para evaluar rechazo explícito (n=20), (5) solicitudes de marcas incompatibles o no distribuidas (n=20), y (6) solicitudes de productos descontinuados o con precios desactualizados para validar la vigencia de catálogo (n=20). De forma complementaria, se llevará a cabo una sesión de validación funcional con 3 asesores de mostrador de Power Electrimk, evaluando la utilidad percibida y facilidad de uso mediante el Modelo de Aceptación Tecnológica (TAM).", bold_prefix="Fase 4: Despliegue y pruebas experimentales. ")
     add_bullet("Se procesarán estadísticamente las métricas de latencia de respuesta, porcentaje de exactitud en precios y referencias técnicas, tasa de alucinación y utilización de memoria RAM y procesador en el servidor. Los resultados se contrastarán contra las hipótesis de investigación planteadas, y se redactará el informe técnico final de titulación de conformidad con las directrices institucionales (Llerena-Izquierdo, Lindao-Cacao, et al., 2026).", bold_prefix="Fase 5: Análisis de resultados y documentación. ")
 
-    # Figura 1: Metodología
-    add_caption("Figura 1", "Diagrama de flujo de las fases de la metodología de investigación")
+    # Figura 1 con SEQ Figura
+    add_caption_with_seq(doc, "Figura", 1, "Diagrama de flujo de las fases de la metodología de investigación")
     fig1_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura1.png')
     if os.path.exists(fig1_path):
         p_fig = doc.add_paragraph()
@@ -535,13 +696,11 @@ def create_anteproyecto_word(output_paths):
     add_bullet("Perfil de utilización de memoria RAM del proceso .NET (en megabytes) y porcentaje promedio de ocupación de CPU en la instancia de nube durante ráfagas de consultas.", bold_prefix="Consumo de recursos: ")
     add_bullet("Grado de aceptación de la herramienta por parte de los asesores comerciales de mostrador mediante cuestionario estandarizado basado en el Modelo de Aceptación Tecnológica (TAM), evaluando Utilidad Percibida (PU) y Facilidad de Uso Percibida (PEOU) en escala Likert de 1 a 5.", bold_prefix="Aceptación funcional (TAM): ")
 
-    # =========================================================================
-    # SECCIÓN 8: CRONOGRAMA
-    # =========================================================================
+    # --- SECCIÓN 8: CRONOGRAMA ---
     add_h1("8. Cronograma de actividades")
     add_p("El desarrollo del proyecto de titulación se estructurará a lo largo de un período académico regular, ajustándose de forma estricta a los hitos de evaluación y seguimiento dispuestos por la Comisión de Titulación de la carrera, tal como se detalla en la Tabla 2.")
 
-    add_caption("Tabla 2", "Cronograma de hitos institucionales y distribución de carga horaria (800 horas de dedicación conjunta)")
+    add_caption_with_seq(doc, "Tabla", 2, "Cronograma de hitos institucionales y distribución de carga horaria (800 horas de dedicación conjunta)")
     t2 = doc.add_table(rows=7, cols=5)
     t2.alignment = WD_TABLE_ALIGNMENT.CENTER
     t2_data = [
@@ -571,7 +730,7 @@ def create_anteproyecto_word(output_paths):
 
     add_p("Para garantizar la culminación exitosa de los objetivos planteados dentro del límite normativo de 400 horas de dedicación individual, se presenta en la Tabla 3 el desglose pormenorizado de actividades por cada una de las cinco fases de la investigación, indicando su carga horaria estimada, fechas de inicio y culminación, y los responsables asignados.")
 
-    add_caption("Tabla 3", "Plan de actividades por fases del proyecto de titulación")
+    add_caption_with_seq(doc, "Tabla", 3, "Plan de actividades por fases del proyecto de titulación")
     t3_data = [
         ["Actividad", "Horas", "Inicio", "Fin", "Responsables"],
         ["Fase 1: Revisión bibliográfica y análisis de requerimientos", "", "", "", ""],
@@ -608,14 +767,12 @@ def create_anteproyecto_word(output_paths):
 
     add_note("Distribución del esfuerzo de ingeniería en 720 horas de ejecución técnica y 80 horas de contingencia para imprevistos o ajustes experimentales, completando las 800 horas conjuntas reglamentarias (400 horas por estudiante).")
 
-    # =========================================================================
-    # SECCIÓN 9: PRESUPUESTO
-    # =========================================================================
+    # --- SECCIÓN 9: PRESUPUESTO ---
     add_h1("9. Presupuesto del proyecto de titulación")
     add_p("El presupuesto estimado para la ejecución integral del proyecto de titulación considera tanto la valoración formal del esfuerzo de ingeniería de software (mano de obra de los tesistas), como el dimensionamiento técnico de la infraestructura computacional en la nube, conectividad, licencias de consumo y suministros requeridos para el ciclo de vida del software. En la Tabla 4 se expone la valoración económica formal de mercado del proyecto, cuantificada conforme a precios estándar de la industria del software.")
 
-    add_caption("Tabla 4", "Presupuesto detallado y valoración económica de mercado del proyecto de titulación")
-    t4 = doc.add_table(rows=13, cols=3)
+    add_caption_with_seq(doc, "Tabla", 4, "Presupuesto detallado y valoración económica de mercado del proyecto de titulación")
+    t4 = doc.add_table(rows=14, cols=3)
     t4.alignment = WD_TABLE_ALIGNMENT.CENTER
     t4_data = [
         ["Categoría / Rubro", "Descripción y dedicación del recurso", "Valor de mercado (USD)"],
@@ -630,7 +787,8 @@ def create_anteproyecto_word(output_paths):
         ["Línea telefónica comercial", "Tarjeta SIM y recargas para WhatsApp Business API", "25.00"],
         ["Servicio de acceso a Internet", "Conectividad fija de banda ancha durante 6 meses ($30.00/mes)", "180.00"],
         ["Impresión y encuadernación", "Empastado y documentación física institucional de titulación", "70.00"],
-        ["Fondo de contingencia", "Margen para imprevistos operativos y pruebas adicionales (10%)", "40.00"]
+        ["Fondo de contingencia", "Margen para imprevistos operativos y pruebas adicionales (10%)", "40.00"],
+        ["Valor total estimado de mercado del proyecto", "Suma ponderada de mano de obra y recursos tecnológicos", "8430.00"]
     ]
     for r_idx, row in enumerate(t4_data):
         for c_idx, val in enumerate(row):
@@ -643,17 +801,10 @@ def create_anteproyecto_word(output_paths):
                                       bottom={"sz": 8, "val": "single", "color": "003366"})
             elif "Mano de obra" in val or "Infraestructura" in val:
                 cell.paragraphs[0].runs[0].font.bold = True
-            elif r_idx == 12:
-                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "003366"})
-
-    row_tot = t4.add_row()
-    row_tot.cells[0].text = "Valor total estimado de mercado del proyecto"
-    row_tot.cells[0].paragraphs[0].runs[0].font.bold = True
-    row_tot.cells[2].text = "8430.00"
-    row_tot.cells[2].paragraphs[0].runs[0].font.bold = True
-    set_cell_border(row_tot.cells[0], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
-    set_cell_border(row_tot.cells[1], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
-    set_cell_border(row_tot.cells[2], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
+            elif r_idx == 13:
+                cell.paragraphs[0].runs[0].font.bold = True
+                set_cell_border(cell, top={"sz": 8, "val": "single", "color": "003366"},
+                                      bottom={"sz": 12, "val": "single", "color": "003366"})
 
     add_note("Valores expresados en dólares de los Estados Unidos de América (USD), calculados a tarifas vigentes a noviembre de 2026. La tarifa horaria de 10.00 USD/h se fundamenta en los valores referenciales de mercado para desarrolladores de software junior en Ecuador. Los costos directos de suministros (195.00 USD) y la mano de obra de investigación (8000.00 USD) son asumidos íntegramente por los autores.")
 
@@ -661,9 +812,7 @@ def create_anteproyecto_word(output_paths):
 
     add_p("Por otra parte, desde la perspectiva operativa y financiera de la puesta en marcha, el proyecto exhibe una ventaja competitiva excepcional gracias al aprovechamiento estratégico de las capas gratuitas (Free Tiers) ofrecidas por los principales proveedores tecnológicos de nube e inteligencia artificial. Durante la etapa de investigación, desarrollo y validación experimental, los costos computacionales de la nube y de la API de inferencia se reducen de forma efectiva a 0.00 USD. En la Tabla 5 se presenta la conciliación financiera detallada entre los costos estimados de mercado, la cobertura por capas gratuitas y el desembolso efectivo real asumido por los tesistas.")
 
-    add_caption("Tabla 5", "Conciliación financiera y análisis operativo de servicios en la nube: Capa Gratuita vs. Régimen Comercial")
-    t5 = doc.add_table(rows=7, cols=4)
-    t5.alignment = WD_TABLE_ALIGNMENT.CENTER
+    add_caption_with_seq(doc, "Tabla", 5, "Conciliación financiera y análisis operativo de servicios en la nube: Capa Gratuita vs. Régimen Comercial")
     t5_data = [
         ["Proveedor / Servicio", "Condición de gratuidad / Cobertura en tesis", "Régimen Comercial (Pay-as-you-go)", "Costo efectivo en tesis (USD)"],
         ["Google Gemini API (Google AI Studio)", "Free Tier (hasta 15 RPM, 1M TPM y 1500 solicitudes/día gratuitas para Gemini Flash).", "Entrada: $0.075 / 1M tokens. Salida: $0.30 / 1M tokens (aprox. $2.50/mes por 1000 chats/día).", "0.00"],
@@ -671,8 +820,11 @@ def create_anteproyecto_word(output_paths):
         ["Meta Cloud API (WhatsApp Business)", "1000 conversaciones de servicio al cliente al mes gratuitas iniciadas por usuario.", "Tarifa variable por categoría de conversación ($0.008 a $0.035 USD/chat tras superar 1000).", "0.00"],
         ["Let's Encrypt / Certbot (Certificado TLS 1.3)", "Certificados SSL/TLS automatizados de renovación continua (100% de gratuidad permanente).", "Certificados comerciales corporativos con validación de organización ($15.00 a $60.00/año).", "0.00"],
         ["Dominio powerelectrimk.com", "Infraestructura preexistente y financiada por la distribuidora Power Electrimk.", "Renovación anual de dominio comercial en registrador acreditado ($15.00/año).", "0.00"],
-        ["Suministros físicos y documentación", "No aplica gratuidad (material de oficina, resmas, encuadernación institucional).", "Costo directo de papelería e impresiones de control normativo.", "195.00"]
+        ["Suministros físicos y documentación", "No aplica gratuidad (material de oficina, resmas, encuadernación institucional).", "Costo directo de papelería e impresiones de control normativo.", "195.00"],
+        ["Desembolso efectivo real de los estudiantes en fase de titulación", "Financiamiento directo exclusivo de suministros no cubiertos por gratuidad", "Total asumido íntegramente por los autores", "195.00"]
     ]
+    t5 = doc.add_table(rows=len(t5_data), cols=4)
+    t5.alignment = WD_TABLE_ALIGNMENT.CENTER
     for r_idx, row in enumerate(t5_data):
         for c_idx, val in enumerate(row):
             cell = t5.cell(r_idx, c_idx)
@@ -682,26 +834,16 @@ def create_anteproyecto_word(output_paths):
                 cell.paragraphs[0].runs[0].font.bold = True
                 set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
                                       bottom={"sz": 8, "val": "single", "color": "003366"})
-            elif r_idx == 6:
-                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "003366"})
-
-    row_t5_tot = t5.add_row()
-    row_t5_tot.cells[0].text = "Desembolso efectivo real de los estudiantes en fase de titulación"
-    row_t5_tot.cells[0].paragraphs[0].runs[0].font.bold = True
-    row_t5_tot.cells[3].text = "195.00"
-    row_t5_tot.cells[3].paragraphs[0].runs[0].font.bold = True
-    set_cell_border(row_t5_tot.cells[0], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
-    set_cell_border(row_t5_tot.cells[1], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
-    set_cell_border(row_t5_tot.cells[2], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
-    set_cell_border(row_t5_tot.cells[3], top={"sz": 8, "val": "single", "color": "003366"}, bottom={"sz": 12, "val": "single", "color": "003366"})
+            elif r_idx == len(t5_data) - 1:
+                cell.paragraphs[0].runs[0].font.bold = True
+                set_cell_border(cell, top={"sz": 8, "val": "single", "color": "003366"},
+                                      bottom={"sz": 12, "val": "single", "color": "003366"})
 
     add_note("Datos recopilados de la documentación técnica y tablas de facturación de Google AI Studio, Amazon Web Services Free Tier y Meta for Developers (noviembre 2026). El desembolso efectivo real asumido por los tesistas se limita estrictamente a suministros de oficina e impresiones (195.00 USD), ratificando la plena factibilidad presupuestaria de la investigación.")
 
     add_p("Este análisis evidencia que la combinación de un motor embebido SQLite (modo WAL sin costo de licenciamiento) con la Capa Gratuita de Google AI Studio y el AWS Free Tier minimiza el riesgo de inversión para la distribuidora Power Electrimk, requiriendo un desembolso directo de únicamente 195.00 USD durante los meses de ejecución del proyecto de titulación. Si la distribuidora decidiera extender la solución a un volumen comercial masivo superando los límites de la capa gratuita, el esquema de cobro por consumo de Gemini Flash garantiza que el costo mensual de inferencia por cada 1 000 cotizaciones atendidas no excederá los 3.00 USD, lo cual consolida la sostenibilidad económica y el retorno de inversión del sistema frente a plataformas propietarias de alto costo recurrente.")
 
-    # =========================================================================
-    # SECCIÓN 10: REFERENCIAS BIBLIOGRÁFICAS
-    # =========================================================================
+    # --- SECCIÓN 10: REFERENCIAS BIBLIOGRÁFICAS ---
     doc.add_page_break()
     add_h1("10. Referencias bibliográficas")
     referencias = [
@@ -739,7 +881,7 @@ def create_anteproyecto_word(output_paths):
         "Tonmoy, S. M. T. I., Zaman, S. M., Jain, V., Rani, A., Rawte, V., Chadha, A., & Das, A. (2024). A Comprehensive Survey of Hallucination in Large Language Models. arXiv Preprint arXiv:2402.04944. https://doi.org/10.48550/arXiv.2402.04944",
         "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I. (2017). Attention is All you Need. Advances in Neural Information Processing Systems (NeurIPS 2017), 30, 5998–6008. https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html",
         "Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Chen, J., Tang, J., Chen, X., Lin, Y., Zhao, W. X., Wei, Z., & Wen, J.-R. (2024). A survey on large language model based autonomous agents. Frontiers of Computer Science, 18(6), 186345. https://doi.org/10.1007/s11704-024-40231-1",
-        "Wu, Q., Bansal, G., Zhang, J., Wu, Y., Zhang, S., Erkens, E., Kiciman, E., Wang, H., Liang, Q., & Wang, C. (2023). AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation Framework. arXiv Preprint arXiv:2308.08155. https://doi.org/10.48550/arXiv.2308.08155",
+        "Wu, Q., Bansal, G., Zhang, J., Wu, Y., Zhang, S., Erkens, E., Kiciman, E.,王, H., Liang, Q., & Wang, C. (2023). AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation Framework. arXiv Preprint arXiv:2308.08155. https://doi.org/10.48550/arXiv.2308.08155",
         "Zerega-Prado, J., & Llerena-Izquierdo, J. (2022). Arquitectura de consolidación de la información para seguros de la salud mediante Big Data. Memoria Investigaciones en Ingeniería, 23, 18–31. https://doi.org/10.36561/ING.23.3"
     ]
     for ref in referencias:
@@ -753,16 +895,14 @@ def create_anteproyecto_word(output_paths):
         r.font.name = 'Times New Roman'
         r.font.size = Pt(10)
 
-    # =========================================================================
-    # SECCIÓN 11: ANEXOS
-    # =========================================================================
+    # --- SECCIÓN 11: ANEXOS ---
     doc.add_page_break()
     add_h1("11. Anexos")
 
     add_h2("11.1. Anexo 1: Árbol de problemas y objetivos (Metodología 5W+H)")
     add_p("De acuerdo con la guía metodológica de formulación de proyectos 5W+H de la Universidad Politécnica Salesiana, se presentan en la Figura 2 y la Figura 3 las representaciones causales del problema central y su transformación propositiva hacia los medios y fines de la solución técnica.")
 
-    add_caption("Figura 2", "Árbol de problemas de la atención comercial en distribuidoras eléctricas")
+    add_caption_with_seq(doc, "Figura", 2, "Árbol de problemas de la atención comercial en distribuidoras eléctricas")
     fig2_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura2.png')
     if os.path.exists(fig2_path):
         p_fig = doc.add_paragraph()
@@ -770,7 +910,7 @@ def create_anteproyecto_word(output_paths):
         p_fig.add_run().add_picture(fig2_path, width=Inches(6.2))
     add_note("Estructura causal del problema identificada a través de la metodología 5W+H en la distribuidora Power Electrimk.")
 
-    add_caption("Figura 3", "Árbol de objetivos de la solución de ingeniería de software")
+    add_caption_with_seq(doc, "Figura", 3, "Árbol de objetivos de la solución de ingeniería de software")
     fig3_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura3.png')
     if os.path.exists(fig3_path):
         p_fig = doc.add_paragraph()
@@ -778,11 +918,23 @@ def create_anteproyecto_word(output_paths):
         p_fig.add_run().add_picture(fig3_path, width=Inches(6.2))
     add_note("Transformación de medios y fines orientada a la ingeniería de software y la validación experimental.")
 
-    doc.add_page_break()
+    # =========================================================================
+    # SECCIÓN 3: ANEXO 2 EN FORMATO HORIZONTAL (LANDSCAPE)
+    # =========================================================================
+    sec_matrix = doc.add_section(WD_SECTION.NEW_PAGE)
+    sec_matrix.orientation = WD_ORIENT.LANDSCAPE
+    sec_matrix.page_width = Inches(11.0)
+    sec_matrix.page_height = Inches(8.5)
+    sec_matrix.top_margin = Inches(0.8)
+    sec_matrix.bottom_margin = Inches(0.8)
+    sec_matrix.left_margin = Inches(0.8)
+    sec_matrix.right_margin = Inches(0.8)
+    add_header_page_number(sec_matrix, fmt="decimal")
+
     add_h2("11.2. Anexo 2: Matriz de consistencia metodológica de la investigación (UPS P69)")
     add_p("En la Tabla 6 se detalla la Matriz de Consistencia Metodológica elaborada bajo el formato normativo institucional UPS P69, evidenciando la coherencia entre problemas, objetivos, hipótesis, variables e indicadores.")
 
-    add_caption("Tabla 6", "Matriz de consistencia metodológica de la investigación (Formato Institucional UPS P69)")
+    add_caption_with_seq(doc, "Tabla", 6, "Matriz de consistencia metodológica de la investigación (Formato Institucional UPS P69)")
     t6 = doc.add_table(rows=5, cols=6)
     t6.alignment = WD_TABLE_ALIGNMENT.CENTER
     t6_headers = ["Problema", "Objetivos", "Hipótesis", "Variables y Dimensiones", "Indicadores Prioritarios", "Técnicas e Instrumentos"]
@@ -840,7 +992,19 @@ def create_anteproyecto_word(output_paths):
 
     add_note("Matriz adaptada de la plantilla oficial de consistencia de la investigación UPS Sede Guayaquil (P69).")
 
-    doc.add_page_break()
+    # =========================================================================
+    # SECCIÓN 4: ANEXOS 3 Y 4 EN FORMATO VERTICAL (PORTRAIT)
+    # =========================================================================
+    sec_annex_portrait = doc.add_section(WD_SECTION.NEW_PAGE)
+    sec_annex_portrait.orientation = WD_ORIENT.PORTRAIT
+    sec_annex_portrait.page_width = Inches(8.5)
+    sec_annex_portrait.page_height = Inches(11.0)
+    sec_annex_portrait.top_margin = Inches(1.0)
+    sec_annex_portrait.bottom_margin = Inches(1.0)
+    sec_annex_portrait.left_margin = Inches(1.0)
+    sec_annex_portrait.right_margin = Inches(1.0)
+    add_header_page_number(sec_annex_portrait, fmt="decimal")
+
     add_h2("11.3. Anexo 3: Diagrama de arquitectura de software y flujo de procesamiento")
     add_p("En la Figura 4 se ilustra la arquitectura de componentes y el flujo secuencial de procesamiento de mensajes del agente inteligente, detallando la interacción entre los servicios externos de mensajería e inferencia y la infraestructura de cómputo local en la nube. La arquitectura incorpora cuatro salvaguardas críticas de ingeniería de software:")
     add_bullet("Middleware en .NET 8 que valida la firma X-Hub-Signature-256 mediante HMAC-SHA256 antes de enrutar el payload, y verifica el identificador único del mensaje (wamid) contra una tabla de deduplicación en SQLite con caché en memoria (TTL de 5 minutos) para descartar reintentos duplicados de WhatsApp.", bold_prefix="Autenticación criptográfica e idempotencia: ")
@@ -848,7 +1012,7 @@ def create_anteproyecto_word(output_paths):
     add_bullet("El modelo generativo actúa estrictamente como extractor semántico de requerimientos; los cálculos de precios unitarios, descuentos comerciales y del IVA al 15% son ejecutados exclusivamente por código determinista en C#, inyectando una cotización inmutable que el LLM no puede alterar.", bold_prefix="Compuerta determinista de cálculo financiero: ")
     add_bullet("Procesamiento en memoria RAM de documentos de requerimientos (.xlsx, .csv, .pdf) con neutralización de inyección de fórmulas y prevención de entidades externas XML (XXE).", bold_prefix="Inspección segura en memoria (Zero Disk): ")
 
-    add_caption("Figura 4", "Arquitectura integral del agente inteligente para la atención comercial con recuperación local de catálogos")
+    add_caption_with_seq(doc, "Figura", 4, "Arquitectura integral del agente inteligente para la atención comercial con recuperación local de catálogos")
     fig4_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura4_updated.png')
     if not os.path.exists(fig4_path):
         fig4_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura4.png')
