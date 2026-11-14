@@ -20,6 +20,31 @@ def enable_update_fields(doc):
     else:
         update_fields.set(qn('w:val'), 'true')
 
+def set_run_font_xml(r, font_name='Times New Roman'):
+    """Explicitly injects w:rFonts into a run's XML for 100% LibreOffice & Word font fidelity."""
+    rPr = r._r.get_or_add_rPr()
+    rFonts = rPr.find(qn('w:rFonts'))
+    if rFonts is None:
+        rFonts = OxmlElement('w:rFonts')
+        rPr.append(rFonts)
+    rFonts.set(qn('w:ascii'), font_name)
+    rFonts.set(qn('w:hAnsi'), font_name)
+    rFonts.set(qn('w:cs'), font_name)
+    rFonts.set(qn('w:eastAsia'), font_name)
+
+def set_style_fonts(style, font_name='Times New Roman'):
+    """Sets font on both python-docx style and raw XML w:rFonts."""
+    style.font.name = font_name
+    rPr = style.element.get_or_add_rPr()
+    rFonts = rPr.find(qn('w:rFonts'))
+    if rFonts is None:
+        rFonts = OxmlElement('w:rFonts')
+        rPr.append(rFonts)
+    rFonts.set(qn('w:ascii'), font_name)
+    rFonts.set(qn('w:hAnsi'), font_name)
+    rFonts.set(qn('w:cs'), font_name)
+    rFonts.set(qn('w:eastAsia'), font_name)
+
 def add_header_page_number(section, fmt="decimal", start=None):
     """Configures right-aligned PAGE field in section header (Strict APA 7: Times New Roman 12pt, Black)."""
     header = section.header
@@ -258,14 +283,14 @@ def create_anteproyecto_word(output_paths):
 
     # Normal Style (Times New Roman 12 pt, Negro absoluto #000000)
     style_normal = styles['Normal']
+    set_style_fonts(style_normal, 'Times New Roman')
     font_normal = style_normal.font
-    font_normal.name = 'Times New Roman'
     font_normal.size = Pt(12)
     font_normal.color.rgb = RGBColor(0, 0, 0)
 
     # Heading 1 (APA 7 Nivel 1: 12 pt, Negrita, Centrado, Negro #000000)
     h1 = styles['Heading 1']
-    h1.font.name = 'Times New Roman'
+    set_style_fonts(h1, 'Times New Roman')
     h1.font.size = Pt(12)  # Strict APA 7: 12 pt
     h1.font.bold = True
     h1.font.color.rgb = RGBColor(0, 0, 0)  # Pure Black
@@ -275,7 +300,7 @@ def create_anteproyecto_word(output_paths):
 
     # Heading 2 (APA 7 Nivel 2: 12 pt, Negrita, Alineado a la Izquierda, Negro #000000)
     h2 = styles['Heading 2']
-    h2.font.name = 'Times New Roman'
+    set_style_fonts(h2, 'Times New Roman')
     h2.font.size = Pt(12)  # Strict APA 7: 12 pt
     h2.font.bold = True
     h2.font.color.rgb = RGBColor(0, 0, 0)  # Pure Black
@@ -285,7 +310,7 @@ def create_anteproyecto_word(output_paths):
 
     # Heading 3 (APA 7 Nivel 3: 12 pt, Negrita Cursiva, Alineado a la Izquierda, Negro #000000)
     h3 = styles['Heading 3']
-    h3.font.name = 'Times New Roman'
+    set_style_fonts(h3, 'Times New Roman')
     h3.font.size = Pt(12)  # Strict APA 7: 12 pt
     h3.font.bold = True
     h3.font.italic = True
@@ -295,27 +320,49 @@ def create_anteproyecto_word(output_paths):
         h3_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="2"/>' % nsdecls('w')))
 
     def add_h1(text):
-        p = doc.add_paragraph(text, style='Heading 1')
+        p = doc.add_paragraph(style='Heading 1')
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(18)
         p.paragraph_format.space_after = Pt(6)
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.keep_with_next = True
+        r = p.add_run(text)
+        r.font.name = 'Times New Roman'
+        r.font.size = Pt(12)
+        r.font.bold = True
+        r.font.color.rgb = RGBColor(0, 0, 0)
+        set_run_font_xml(r, 'Times New Roman')
         return p
 
     def add_h2(text):
-        p = doc.add_paragraph(text, style='Heading 2')
+        p = doc.add_paragraph(style='Heading 2')
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
         p.paragraph_format.space_before = Pt(14)
         p.paragraph_format.space_after = Pt(4)
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.keep_with_next = True
+        r = p.add_run(text)
+        r.font.name = 'Times New Roman'
+        r.font.size = Pt(12)
+        r.font.bold = True
+        r.font.color.rgb = RGBColor(0, 0, 0)
+        set_run_font_xml(r, 'Times New Roman')
         return p
 
     def add_h3(text):
-        p = doc.add_paragraph(text, style='Heading 3')
+        p = doc.add_paragraph(style='Heading 3')
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
         p.paragraph_format.space_before = Pt(10)
         p.paragraph_format.space_after = Pt(3)
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.keep_with_next = True
+        r = p.add_run(text)
+        r.font.name = 'Times New Roman'
+        r.font.size = Pt(12)
+        r.font.bold = True
+        r.font.italic = True
+        r.font.color.rgb = RGBColor(0, 0, 0)
+        set_run_font_xml(r, 'Times New Roman')
         return p
 
     def add_p(text, bold_prefix=None, indent=True):
@@ -530,8 +577,8 @@ def create_anteproyecto_word(output_paths):
     # 1. Índice General (TOC dinámico nativo)
     # Las entradas cacheadas coinciden exactamente al 100% con los títulos del cuerpo
     sample_toc = [
-        ("1. Tema del Trabajo de Titulación", 1, 1),
-        ("2. Antecedentes", 1, 1),
+        ("1. Título", 1, 1),
+        ("2. Problema de estudio y antecedentes", 1, 1),
         ("3. Justificación", 3, 1),
         ("4. Objetivos", 5, 1),
         ("4.1. Objetivo General", 5, 2),
@@ -544,8 +591,8 @@ def create_anteproyecto_word(output_paths):
         ("6.2. Modelos generativos de lenguaje extenso y arquitectura de agentes", 8, 2),
         ("6.3. Recuperación aumentada, bases de datos embebidas y estándares de ingeniería", 9, 2),
         ("7. Metodología / Propuesta de desarrollo", 10, 1),
-        ("8. Cronograma de actividades", 14, 1),
-        ("9. Presupuesto del proyecto de titulación", 15, 1),
+        ("8. Cronograma y actividades para desarrollar", 14, 1),
+        ("9. Presupuesto", 15, 1),
         ("10. Referencias bibliográficas", 17, 1),
         ("11. Anexos", 20, 1),
         ("11.1. Anexo 1: Árbol de problemas y objetivos (Metodología 5W+H)", 20, 2),
@@ -712,11 +759,13 @@ def create_anteproyecto_word(output_paths):
 
     # Figura 1 con SEQ Figura
     add_caption_with_seq(doc, "Figura", 1, "Diagrama de flujo de las fases de la metodología de investigación")
-    fig1_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura1.png')
+    fig1_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'figura1_clean.png')
+    if not os.path.exists(fig1_path):
+        fig1_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura1.png')
     if os.path.exists(fig1_path):
         p_fig = doc.add_paragraph()
         p_fig.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_fig.add_run().add_picture(fig1_path, width=Inches(4.5))
+        p_fig.add_run().add_picture(fig1_path, width=Inches(6.0))
     add_note("El diagrama ilustra la progresión secuencial de las cinco fases metodológicas y sus entregables tangibles, incluyendo el lazo de retroalimentación de ajustes entre la fase experimental y el código del prototipo.")
 
     add_p("Para la evaluación formal del sistema se han operacionalizado las siguientes métricas experimentales:")
@@ -954,19 +1003,23 @@ def create_anteproyecto_word(output_paths):
     add_p("De acuerdo con la guía metodológica de formulación de proyectos 5W+H de la Universidad Politécnica Salesiana, se presentan en la Figura 2 y la Figura 3 las representaciones causales del problema central y su transformación propositiva hacia los medios y fines de la solución técnica.")
 
     add_caption_with_seq(doc, "Figura", 2, "Árbol de problemas de la atención comercial en distribuidoras eléctricas")
-    fig2_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura2.png')
+    fig2_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'figura2_clean.png')
+    if not os.path.exists(fig2_path):
+        fig2_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura2.png')
     if os.path.exists(fig2_path):
         p_fig = doc.add_paragraph()
         p_fig.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_fig.add_run().add_picture(fig2_path, width=Inches(6.2))
+        p_fig.add_run().add_picture(fig2_path, width=Inches(6.0))
     add_note("Estructura causal del problema identificada a través de la metodología 5W+H en la distribuidora Power Electrimk.")
 
     add_caption_with_seq(doc, "Figura", 3, "Árbol de objetivos de la solución de ingeniería de software")
-    fig3_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura3.png')
+    fig3_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'figura3_clean.png')
+    if not os.path.exists(fig3_path):
+        fig3_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura3.png')
     if os.path.exists(fig3_path):
         p_fig = doc.add_paragraph()
         p_fig.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_fig.add_run().add_picture(fig3_path, width=Inches(6.2))
+        p_fig.add_run().add_picture(fig3_path, width=Inches(6.0))
     add_note("Transformación de medios y fines orientada a la ingeniería de software y la validación experimental.")
 
     # =========================================================================
@@ -1068,7 +1121,9 @@ def create_anteproyecto_word(output_paths):
     add_bullet("Procesamiento en memoria RAM de documentos de requerimientos (.xlsx, .csv, .pdf) con neutralización de inyección de fórmulas y prevención de entidades externas XML (XXE).", bold_prefix="Inspección segura en memoria (Zero Disk): ")
 
     add_caption_with_seq(doc, "Figura", 4, "Arquitectura integral del agente inteligente para la atención comercial con recuperación local de catálogos")
-    fig4_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura4_updated.png')
+    fig4_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'figura4_clean.png')
+    if not os.path.exists(fig4_path):
+        fig4_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura4_updated.png')
     if not os.path.exists(fig4_path):
         fig4_path = os.path.join(base_dir, 'Docs', 'images', 'extracted', 'crop_figura4.png')
     if os.path.exists(fig4_path):
@@ -1084,6 +1139,38 @@ def create_anteproyecto_word(output_paths):
     add_bullet("Los conjuntos de datos de prueba, trazas de telemetría y transcripciones experimentales publicadas en el repositorio se someterán a un protocolo riguroso de anonimización irreversible. Los números telefónicos y nombres de personas naturales son sustituidos por identificadores sintéticos disociados (UUIDs), garantizando el pleno acatamiento de la Ley Orgánica de Protección de Datos Personales del Ecuador.", bold_prefix="3. Gobernanza y anonimización de datos (LOPDP): ")
     add_bullet("El repositorio incluye las directrices técnicas, el archivo Dockerfile de compilación multicapa y los procedimientos documentados paso a paso para desplegar el entorno de evaluación sobre cualquier distribución Linux con el runtime de .NET 8 y SQLite preinstalados.", bold_prefix="4. Guía de reproducibilidad computacional: ")
 
+    # =========================================================================
+    # POST-PROCESAMIENTO GLOBAL APA 7: ENFORCEMENT ESTRICTO DE FUENTES
+    # Recorre TODOS los párrafos, tablas, celdas y encabezados para garantizar
+    # que el 100% de los runs tengan 'Times New Roman' en XML w:rFonts y color #000000.
+    # =========================================================================
+    for p in doc.paragraphs:
+        for r in p.runs:
+            r.font.name = 'Times New Roman'
+            r.font.color.rgb = RGBColor(0, 0, 0)
+            set_run_font_xml(r, 'Times New Roman')
+
+    for t in doc.tables:
+        for row in t.rows:
+            for cell in row.cells:
+                for p in cell.paragraphs:
+                    for r in p.runs:
+                        r.font.name = 'Times New Roman'
+                        r.font.color.rgb = RGBColor(0, 0, 0)
+                        set_run_font_xml(r, 'Times New Roman')
+
+    for s in doc.sections:
+        for h_p in s.header.paragraphs:
+            for r in h_p.runs:
+                r.font.name = 'Times New Roman'
+                r.font.color.rgb = RGBColor(0, 0, 0)
+                set_run_font_xml(r, 'Times New Roman')
+        for f_p in s.footer.paragraphs:
+            for r in f_p.runs:
+                r.font.name = 'Times New Roman'
+                r.font.color.rgb = RGBColor(0, 0, 0)
+                set_run_font_xml(r, 'Times New Roman')
+
     for path in output_paths:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         doc.save(path)
@@ -1093,6 +1180,5 @@ if __name__ == "__main__":
     base = r"c:\Users\lenovo\Desktop\AgenteVentasPower"
     paths = [
         os.path.join(base, "Docs", "Word", "Anteproyecto_PowerElectrimk.docx"),
-        os.path.join(base, "Documentos", "Word", "Anteproyecto_PowerElectrimk.docx")
     ]
     create_anteproyecto_word(paths)
