@@ -59,3 +59,23 @@ Durante la evolución e ingeniería del artefacto de software se han consolidado
 * **Resaltar el principio de "Ingeniería Frugal" (Frugal Engineering):** Demostrar cómo se logró un sistema de alta precisión con cero costo recurrente, operando en AWS EC2 Free Tier bajo Kestrel y SQLite WAL.
 * **Defender la elección de RAG Relacional vs. RAG Vectorial:** Justificar que en materiales eléctricos el código de producto y sus especificaciones técnicas exigen recuperación fáctica determinista sin tolerancia a alucinación.
 * **Demostrar la robustez de Ciberseguridad:** Explicar cómo el sistema previene que un usuario intente saltarse las reglas o inyectar comandos a través de fotos o archivos de Excel.
+
+---
+
+### 5. Verificación Rigurosa de Formato APA 7ma Edición (Tipografía y Símbolos)
+
+* **Jerarquía de paquetes tipográficos en `preambulo.tex`:**
+  * Para evitar colisiones y degradación de glifos a Computer Modern, el orden estricto de carga es:
+    1. `\usepackage[T1]{fontenc}`
+    2. `\usepackage{amsmath}`
+    3. `\usepackage{newtxtext}`
+    4. `\usepackage{newtxmath}`
+* **Estandarización de Símbolos y Modo Matemático:**
+  * Variables uniletéricas matemáticas en cursiva: $T$, $H$, $N$, $p$.
+  * Siglas y acrónimos estadísticos en texto regular: $\text{Acc}_{\text{cot}}$ (no $Acc$).
+  * Operadores de desigualdad y aproximación siempre en modo matemático: $\ge$, $<$, $>$, $\approx$.
+  * Separación de unidades físicas y monetarias con espacio no separable (`~`): `$< 250$~MB`, `$< 4.0$~s`, `10.00~USD/h`.
+  * Homogeneización monetaria a código ISO 4217 (`USD`), eliminando mezclas visuales de `\$` con operadores matemáticos sueltos.
+* **Eliminación de fuentes ajenas:**
+  * Todo el texto, nombres de dominio, archivos y servicios se presentan en Times New Roman (`ztmr`, `ztmb`, `ztmri`) eliminando fuentes monoespaciadas Courier (`t1xtt`) en el cuerpo del informe para garantizar 100% de uniformidad tipográfica institucional.
+

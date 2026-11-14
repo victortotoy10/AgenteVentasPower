@@ -27,7 +27,7 @@ De acuerdo con la guía metodológica de formulación de proyectos 5W+H de la Un
     ]
         % Nivel 1: Efectos (arriba)
         \node[caja_efecto] (e2) {Efecto 2\\Discrepancias e inconsistencias en cotizaciones manuales de precios y códigos.};
-        \node[caja_efecto, left=0.4cm of e2] (e1) {Efecto 1\\Pérdida de prospectos calificados por demoras en respuesta en WhatsApp (> 15 min).};
+        \node[caja_efecto, left=0.4cm of e2] (e1) {Efecto 1\\Pérdida de prospectos calificados por demoras en respuesta en WhatsApp ($> 15$~min).};
         \node[caja_efecto, right=0.4cm of e2] (e3) {Efecto 3\\Sobrecarga operativa del personal comercial en consultas técnicas rutinarias.};
 
         % Nivel 2: Problema central (centro)
@@ -114,13 +114,13 @@ En la Tabla \ref{tab:matriz_consistencia} se detalla la Matriz de Consistencia M
 \textbf{Objetivo General (OG):} \newline
 Desarrollar un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, mediante la integración de modelos generativos y recuperación relacional determinista para garantizar cotizaciones fácticas en Power Electrimk. &
 \textbf{Hipótesis General (HG):} \newline
-El agente con recuperación local sobre SQLite permite alcanzar una exactitud en cotización $\ge 95\%$, tasa de alucinación nula ($0\%$), latencia en P95 $< 4.0$ s y consumo de RAM $< 250$ MB en la nube. &
+El agente con recuperación local sobre SQLite permite alcanzar una exactitud en cotización $\text{Acc}_{\text{cot}} \ge 95\%$, tasa de alucinación nula ($H_{\text{rate}} = 0\%$), latencia en P95 $T_{\text{resp}} < 4.0$~s y consumo de RAM $< 250$~MB en la nube. &
 \textbf{Variable Independiente (VI):} \newline
 Modalidad de interacción conversacional con recuperación determinista local sobre catálogo estructurado. &
-- Exactitud de cotización ($Acc_{\text{cot}} \ge 95\%$). \newline
+- Exactitud de cotización ($\text{Acc}_{\text{cot}} \ge 95\%$). \newline
 - Tasa de alucinación ($H_{\text{rate}} = 0\%$). \newline
-- Latencia en P95 ($T_{\text{resp}} < 4.0$ s). \newline
-- Consumo RAM ($< 250$ MB). &
+- Latencia en P95 ($T_{\text{resp}} < 4.0$~s). \newline
+- Consumo RAM ($< 250$~MB). &
 \textbf{Técnicas:} \newline
 - Telemetría automatizada en servidor AWS. \newline
 - Pruebas de carga sintéticas. \newline
@@ -133,12 +133,12 @@ Modalidad de interacción conversacional con recuperación determinista local so
 \textbf{Objetivo Específico 1 (O1):} \newline
 Analizar los requerimientos operativos de cotización y la estructura de catálogos multimarca en Power Electrimk, fijando especificaciones de diseño. &
 \textbf{Hipótesis Específica 1 (H1):} \newline
-La estructuración relacional normalizada en SQLite permite resolver consultas de inventario en $T_{\text{sql}} < 100$ ms con 100\% de integridad. &
+La estructuración relacional normalizada en SQLite permite resolver consultas de inventario en $T_{\text{sql}} < 100$~ms con 100\% de integridad. &
 \textbf{Variable Dependiente 1 (VD1):} \newline
 \textit{Dimensión Estructura e Integridad de Catálogo:} \newline
 Consistencia y celeridad de consulta de inventario técnico. &
-- Tiempo de ejecución SQL ($T_{\text{sql}} < 100$ ms). \newline
-- Tasa de recuperación de SKU relevantes ($100\%$). \newline
+- Tiempo de ejecución SQL ($T_{\text{sql}} < 100$~ms). \newline
+- Tasa de recuperación de SKU relevantes (100\%). \newline
 - Integridad de atributos (código, precio, marca). &
 \textbf{Técnicas:} \newline
 - Revisión bibliográfica de ingeniería. \newline
@@ -152,11 +152,11 @@ Consistencia y celeridad de consulta de inventario técnico. &
 \textbf{Objetivo Específico 2 (O2):} \newline
 Implementar un prototipo de microservicio en .NET 8 con persistencia SQLite WAL, orquestación Gemini y WhatsApp Cloud API. &
 \textbf{Hipótesis Específica 2 (H2):} \newline
-La arquitectura asíncrona en .NET 8 procesa webhooks concurrentes sin bloqueos y con memoria de proceso $< 250$ MB. &
+La arquitectura asíncrona en .NET 8 procesa webhooks concurrentes sin bloqueos y con memoria de proceso $< 250$~MB. &
 \textbf{Variable Dependiente 2 (VD2):} \newline
 \textit{Dimensión Eficiencia de Recursos:} \newline
 Huella computacional y concurrencia del servicio backend. &
-- Utilización de memoria RAM en .NET ($< 250$ MB). \newline
+- Utilización de memoria RAM en .NET ($< 250$~MB). \newline
 - Concurrencia de sesiones activas simultáneas. \newline
 - Ocupación de CPU en servidor AWS ($< 30\%$). &
 \textbf{Técnicas:} \newline
@@ -171,13 +171,13 @@ Huella computacional y concurrencia del servicio backend. &
 \textbf{Objetivo Específico 3 (O3):} \newline
 Evaluar el prototipo mediante pruebas experimentales comparativas cuantificando exactitud, tasa de alucinación y latencia P95. &
 \textbf{Hipótesis Específica 3 (H3):} \newline
-El agente con recuperación local logra $H_{\text{rate}} = 0\%$, $Acc_{\text{cot}} \ge 95\%$ y $T_{\text{resp, P95}} < 4.0$ s con significancia ($p < 0{,}05$). &
+El agente con recuperación local logra $H_{\text{rate}} = 0\%$, $\text{Acc}_{\text{cot}} \ge 95\%$ y $T_{\text{resp, P95}} < 4.0$~s con significancia ($p < 0{,}05$). &
 \textbf{Variable Dependiente 3 (VD3):} \newline
 \textit{Dimensión Exactitud Fáctica y Rendimiento:} \newline
 Certeza técnica y celeridad de respuesta de cotización. &
-- Exactitud en cotización ($Acc_{\text{cot}} \ge 95\%$). \newline
+- Exactitud en cotización ($\text{Acc}_{\text{cot}} \ge 95\%$). \newline
 - Tasa de alucinación fáctica ($H_{\text{rate}} = 0\%$). \newline
-- Latencia en percentil P95 ($T_{\text{resp, P95}} < 4.0$ s). \newline
+- Latencia en percentil P95 ($T_{\text{resp, P95}} < 4.0$~s). \newline
 - Valor $p$ de significancia ($p < 0{,}05$). &
 \textbf{Técnicas:} \newline
 - Ensayo experimental controlado (control vs. experimental). \newline
@@ -265,5 +265,5 @@ En estricto cumplimiento con el criterio de evaluación ABET IV.3 (Ética, Impac
     \end{center}
     \item \textbf{Licenciamiento de software:} El software se distribuye bajo los términos de la licencia de código abierto \textbf{MIT License}, permitiendo la auditoría por pares, su reutilización académica y la transferencia tecnológica sin fines de lucro hacia otras micro y pequeñas empresas ecuatorianas.
     \item \textbf{Gobernanza y anonimización de datos (LOPDP):} Los conjuntos de datos de prueba, trazas de telemetría y transcripciones experimentales publicadas en el repositorio se someterán a un protocolo riguroso de anonimización irreversible. Los números telefónicos y nombres de personas naturales son sustituidos por identificadores sintéticos disociados (\textit{UUIDs}), garantizando el pleno acatamiento de la Ley Orgánica de Protección de Datos Personales del Ecuador.
-    \item \textbf{Guía de reproducibilidad computacional:} El repositorio incluye las directrices técnicas, el archivo \texttt{Dockerfile} de compilación multicapa y los procedimientos documentados paso a paso para desplegar el entorno de evaluación sobre cualquier distribución Linux con el runtime de .NET 8 y SQLite preinstalados.
+    \item \textbf{Guía de reproducibilidad computacional:} El repositorio incluye las directrices técnicas, el archivo \textit{Dockerfile} de compilación multicapa y los procedimientos documentados paso a paso para desplegar el entorno de evaluación sobre cualquier distribución Linux con el runtime de .NET 8 y SQLite preinstalados.
 \end{enumerate}

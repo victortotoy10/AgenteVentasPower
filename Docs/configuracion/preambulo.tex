@@ -5,17 +5,20 @@
 
 % --- Idioma y codificación ---
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage[spanish,mexico,es-noshorthands]{babel}
 
 % Comando para obtener el nombre del mes actual en español
 \newcommand{\monthname}{%
   \ifcase\month\or enero\or febrero\or marzo\or abril\or mayo\or junio\or julio\or agosto\or septiembre\or octubre\or noviembre\or diciembre\fi}
 
-% --- Tipografía APA 7 (Times New Roman 12pt en todo el documento) ---
-\usepackage{newtxtext,newtxmath} % Times New Roman para texto y matemáticas
-\usepackage[T1]{fontenc}
-\usepackage{anyfontsize}
+% --- Soporte Matemático (debe cargarse ANTES de newtxmath para que no sobrescriba las fuentes de símbolos) ---
 \usepackage{amsmath}
+
+% --- Tipografía APA 7 (Times New Roman 12pt en todo el documento) ---
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage{anyfontsize}
 \usepackage{indentfirst} % Sangría APA 7 en TODOS los párrafos, incluido el primero tras una sección
 \usepackage{enumitem}    % Sangría APA 7 en listas con viñetas y numeradas
 \setlist[itemize]{leftmargin=1.27cm, labelsep=0.3cm, topsep=4pt, itemsep=2pt}
