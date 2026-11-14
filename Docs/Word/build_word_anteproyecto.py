@@ -873,9 +873,7 @@ def create_anteproyecto_word(output_paths):
 if __name__ == "__main__":
     base = r"c:\Users\lenovo\Desktop\AgenteVentasPower"
     paths = [
-        os.path.join(base, "Docs", "Word", "Anteproyecto_Totoy_Seminario_PowerElectrimk.docx"),
-        os.path.join(base, "Docs", "Word", "Anteproyecto_PowerElectrimk_Oficial.docx"),
-        os.path.join(base, "Documentos", "Word", "Anteproyecto_Totoy_Seminario_PowerElectrimk.docx"),
-        os.path.join(base, "AnteproyectoTotoyDamian.docx")  # Actualizar la versión raíz
+        os.path.join(base, "Docs", "Word", "Anteproyecto_PowerElectrimk.docx"),
+        os.path.join(base, "Documentos", "Word", "Anteproyecto_PowerElectrimk.docx")
     ]
     create_anteproyecto_word(paths)
