@@ -1,0 +1,72 @@
+% !TeX root = ../main.tex
+% =========================================================================
+% 9. PRESUPUESTO DEL PROYECTO DE TITULACIÓN
+% Formato APA 7 estricto (booktabs, sin líneas verticales)
+% Distinción formal entre Costo Valorado de Mercado y Desembolso Efectivo Real
+% =========================================================================
+\section{Presupuesto del proyecto de titulación}
+
+El dimensionamiento presupuestario del proyecto de titulación se estructura conforme a los principios de la economía del software y la ingeniería de costos en computación, distinguiendo con rigurosa claridad dos magnitudes financieras complementarias: (a) el \textbf{presupuesto valorado de mercado}, que cuantifica el costo económico total si todos los recursos de ingeniería e infraestructura fuesen contratados a tarifas comerciales plenas; y (b) el \textbf{presupuesto financiero de desembolso efectivo real}, que refleja los fondos netos erogados por los autores durante la etapa de investigación gracias al aprovechamiento estratégico de las capas gratuitas (\textit{Free Tiers}) de los proveedores tecnológicos de nube e inteligencia artificial.
+
+En la Tabla \ref{tab:presupuesto} se expone la valoración económica global del proyecto a precios referenciales de mercado vigentes a noviembre de 2026.
+
+\begin{table}[H]
+\centering
+\caption{Presupuesto valorado de mercado del proyecto de titulación}
+\label{tab:presupuesto}
+\small
+\begin{tabular}{p{5.2cm} p{6.8cm} r}
+\toprule
+\textbf{Categoría / Rubro} & \textbf{Descripción y dedicación del recurso} & \textbf{Costo (USD)} \\
+\midrule
+\multicolumn{3}{l}{\textbf{1. Mano de obra de ingeniería y desarrollo (Tesistas - Aporte en especie académica)}} \\
+Victor Jesús Totoy Iza & Arquitectura backend (.NET 8), webhooks y nube (400 h a 10.00~USD/h) & 4000.00 \\
+Rodolfo Damián Seminario Murillo & Esquema relacional SQLite, orquestación Gemini y pruebas (400 h a 10.00~USD/h) & 4000.00 \\
+\midrule
+\multicolumn{2}{l}{\textit{Subtotal Mano de obra valorada de ingeniería}} & \textit{8000.00} \\
+\midrule
+\multicolumn{3}{l}{\textbf{2. Infraestructura tecnológica, servicios y suministros (Valor comercial pleno)}} \\
+Servidor en la nube (AWS EC2) & Instancia virtual Linux (t2.micro) durante 6 meses de proyecto & 60.00 \\
+Nombre de dominio y gestión TLS & Registro de dominio comercial \textit{powerelectrimk.com} y DNS (1 año) & 15.00 \\
+Consumo de inferencia API Gemini & Cuota de tokens para pruebas de integración y validación ($N=120$) & 40.00 \\
+Línea telefónica y mensajería & Mensajería comercial proyectada para WhatsApp Cloud API & 25.00 \\
+Servicio de acceso a Internet & Conectividad fija simétrica de banda ancha durante 6 meses & 180.00 \\
+Impresión y encuadernación & Empastado y documentación física institucional de titulación & 70.00 \\
+Fondo de contingencia técnica & Margen para imprevistos operativos y pruebas adicionales (10\%) & 40.00 \\
+\midrule
+\multicolumn{2}{l}{\textit{Subtotal Infraestructura y suministros valorados}} & \textit{430.00} \\
+\midrule
+\textbf{Costo económico total valorado del proyecto} & & \textbf{8430.00} \\
+\bottomrule
+\end{tabular}
+\notatabla{Valores expresados en dólares de los Estados Unidos de América (USD), con tarifas referenciales vigentes a noviembre de 2026. La tarifa de 10.00~USD/h se fundamenta en los valores promedio de contratación para desarrolladores de software junior en Ecuador. Los 8000.00~USD de mano de obra representan el aporte de capital humano de los tesistas (800 horas conjuntas).}
+\end{table}
+
+Como se evidencia en la Tabla \ref{tab:presupuesto}, el valor económico consolidado del artefacto de software asciende a 8430.00~USD, donde el 94.9\% corresponde al esfuerzo de ingeniería aportado por los tesistas. No obstante, en concordancia con el principio de ingeniería frugal, la fase de investigación y validación experimental no exige un desembolso monetario equivalente a dicha cifra. Los principales proveedores de infraestructura (\textit{hyperscalers}) disponen de programas de fomento con cuotas sin costo (\textit{Free Tiers}) plenamente compatibles con las demandas computacionales de un microservicio ligero en .NET 8 con base embebida SQLite. En la Tabla \ref{tab:costos_operativos_reales} se desglosa la matriz de financiamiento y conciliación entre el valor de mercado, el beneficio de gratuidad aplicado y el desembolso efectivo real asumido íntegramente por los autores.
+
+\begin{table}[H]
+\centering
+\caption{Matriz de financiamiento y desembolso efectivo real en fase de titulación}
+\label{tab:costos_operativos_reales}
+\small
+\begin{tabular}{p{3.8cm} r p{4.6cm} r}
+\toprule
+\textbf{Rubro / Servicio} & \textbf{Valor Mercado} & \textbf{Mecanismo de Cobertura / Gratuidad} & \textbf{Desembolso (USD)} \\
+\midrule
+Mano de obra tesistas (800 h) & 8000.00 & Aporte en especie académica de los autores & 0.00 \\
+Servidor AWS EC2 t2.micro & 60.00 & AWS Free Tier (750 horas/mes gratis durante 12 meses) & 0.00 \\
+API Google Gemini Flash & 40.00 & Google AI Studio (15 RPM y 1\,500 solicitudes/día gratis) & 0.00 \\
+Meta WhatsApp Cloud API & 25.00 & Meta Developers (1\,000 conversaciones/mes sin costo) & 0.00 \\
+Certificados TLS 1.3 & 0.00 & Let's Encrypt / Certbot (código abierto renovable) & 0.00 \\
+Dominio \textit{powerelectrimk.com} & 15.00 & Registro comercial financiado por los autores & 15.00 \\
+Conectividad a Internet & 180.00 & Infraestructura preexistente (aporte directo autores) & 90.00 \\
+Impresión y empastado UPS & 70.00 & Trámites de grado financiados por los autores & 70.00 \\
+Fondo de contingencia & 40.00 & Margen de imprevistos financiado por los autores & 20.00 \\
+\midrule
+\multicolumn{3}{l}{\textbf{Desembolso financiero efectivo real asumido por los autores}} & \textbf{195.00} \\
+\bottomrule
+\end{tabular}
+\notatabla{Datos oficiales recopilados de las matrices de facturación pública de Google Cloud / AI Studio, Amazon Web Services y Meta for Developers vigentes a noviembre de 2026. El desembolso efectivo real de 195.00~USD demuestra la plena viabilidad financiera del proyecto para su validación en la distribuidora Power Electrimk.}
+\end{table}
+
+Esta conciliación financiera demuestra que, mediante la sinergia de una arquitectura eficiente de microservicio embebido en .NET 8 y el uso de capas gratuitas en la nube, el proyecto minimiza el riesgo económico para la distribuidora Power Electrimk, requiriendo un capital de operación real de únicamente 195.00~USD durante los seis meses de ejecución académica. En caso de que la distribuidora decida posteriormente escalar la solución a régimen comercial masivo fuera del ámbito de titulación, la tarifa bajo demanda de Gemini Flash (0.075~USD por millón de tokens de entrada y 0.30~USD por millón de salida) y de AWS EC2 (0.0116~USD/h) garantiza que el costo mensual de operación por cada 1\,000 clientes atendidos se mantendrá por debajo de 12.00~USD mensuales, asegurando un retorno de inversión altamente positivo frente a plataformas de software propietario.

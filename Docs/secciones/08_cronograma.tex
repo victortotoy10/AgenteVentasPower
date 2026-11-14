@@ -25,42 +25,42 @@ Hito 4 (100\%) & Evaluación experimental e informe final & 05/04/2027 \\
 \notatabla{Cronograma oficial de hitos académicos y ponderaciones de avance de acuerdo con la planificación de la Universidad Politécnica Salesiana.}
 \end{table}
 
-Para garantizar la culminación exitosa de los objetivos planteados dentro del límite normativo de 400 horas de dedicación estudiantil, se presenta en la Tabla \ref{tab:actividades} el desglose pormenorizado de actividades por cada una de las cinco fases de la investigación, indicando su carga horaria estimada, fechas de inicio y culminación, y los responsables asignados.
+Para garantizar la culminación exitosa de los objetivos planteados y en estricto cumplimiento de la normativa académica institucional de la Universidad Politécnica Salesiana para trabajos de titulación desarrollados en pareja, cada estudiante debe cumplir una carga de dedicación individual de 400 horas académicas. En consecuencia, el proyecto contempla un esfuerzo global de ingeniería de \textbf{800 horas hombre conjuntas} (400 horas individuales para Victor Jesús Totoy Iza y 400 horas individuales para Rodolfo Damián Seminario Murillo), distribuidas a lo largo de 18 semanas de ejecución entre el 1 de diciembre de 2026 y el 5 de abril de 2027 (~22 horas semanales por estudiante). En la Tabla \ref{tab:actividades} se expone el desglose pormenorizado de actividades por fases, indicando las horas asignadas a cada tesista, fechas de ejecución y las responsabilidades específicas de ingeniería.
 
 \begin{table}[H]
 \centering
-\caption{Plan de actividades por fases del proyecto de titulación}
+\caption{Plan de actividades y distribución horaria por estudiante (800 horas conjuntas)}
 \label{tab:actividades}
-\small
-\begin{tabular}{p{5.2cm} c c c c}
+\scriptsize
+\begin{tabular}{p{5.4cm} c c c c p{2.8cm}}
 \toprule
-\textbf{Actividad} & \textbf{Horas} & \textbf{Inicio} & \textbf{Fin} & \textbf{Responsables} \\
+\textbf{Actividad de ingeniería} & \textbf{H. Tot.} & \textbf{Totoy} & \textbf{Seminario} & \textbf{Inicio - Fin} & \textbf{Responsabilidad} \\
 \midrule
-\multicolumn{5}{l}{\textit{Fase 1: Revisión bibliográfica y análisis de requerimientos}} \\
-Revisión sistemática de literatura científica & 40 & 01/12/2026 & 12/12/2026 & Autores \\
-Levantamiento de requerimientos y digitalización & 30 & 14/12/2026 & 21/12/2026 & Autores / Tutor \\
+\multicolumn{6}{l}{\textit{Fase 1: Revisión bibliográfica y análisis de requerimientos}} \\
+Revisión sistemática de literatura científica (RAG, LLM) & 80 & 40 & 40 & 01/12 - 12/12 & Ambos autores \\
+Levantamiento de requerimientos y normalización multimarca & 60 & 30 & 30 & 14/12 - 21/12 & Ambos / Asesores \\
 \addlinespace
-\multicolumn{5}{l}{\textit{Fase 2: Diseño de la arquitectura propuesta}} \\
-Diseño arquitectónico y modelado relacional SQLite & 40 & 22/12/2026 & 11/01/2027 & Autores \\
-Estructuración de índices y normalización multimarca & 30 & 12/01/2027 & 25/01/2027 & Autores \\
+\multicolumn{6}{l}{\textit{Fase 2: Diseño de la arquitectura propuesta}} \\
+Arquitectura .NET 8, seguridad HMAC y cola de escrituras & 80 & 50 & 30 & 22/12 - 11/01 & Totoy (Líder Arq.) \\
+Modelado relacional SQLite WAL, FTS5 y ciclo de vida & 70 & 30 & 40 & 12/01 - 25/01 & Seminario (Líder Datos) \\
 \addlinespace
-\multicolumn{5}{l}{\textit{Fase 3: Desarrollo del prototipo funcional}} \\
-Implementación del backend .NET 8 y memoria de sesión & 60 & 26/01/2027 & 12/02/2027 & Autores \\
-Integración con API Gemini y WhatsApp Cloud API & 40 & 15/02/2027 & 01/03/2027 & Autores \\
+\multicolumn{6}{l}{\textit{Fase 3: Desarrollo del prototipo funcional}} \\
+Backend C\# .NET 8, webhooks, idempotencia y memoria sesión & 130 & 80 & 50 & 26/01 - 12/02 & Totoy (Líder Backend) \\
+Integración Gemini, compuerta determinista y WhatsApp API & 90 & 40 & 50 & 15/02 - 01/03 & Seminario (Líder IA) \\
 \addlinespace
-\multicolumn{5}{l}{\textit{Fase 4: Despliegue y pruebas experimentales}} \\
-Despliegue en AWS con Nginx TLS y batería de pruebas & 60 & 02/03/2027 & 19/03/2027 & Autores \\
+\multicolumn{6}{l}{\textit{Fase 4: Despliegue y pruebas experimentales}} \\
+Despliegue AWS EC2, Nginx TLS 1.3 y perfilado Kestrel & 120 & 70 & 50 & 02/03 - 19/03 & Totoy (Líder Cloud) \\
 \addlinespace
-\multicolumn{5}{l}{\textit{Fase 5: Análisis de resultados y documentación}} \\
-Análisis estadístico de telemetría y redacción del informe & 60 & 20/03/2027 & 05/04/2027 & Autores / Tutor \\
+\multicolumn{6}{l}{\textit{Fase 5: Análisis de resultados y documentación}} \\
+Batería $N=120$, validación con asesores (TAM) e informe final & 90 & 40 & 50 & 20/03 - 05/04 & Seminario / Totoy \\
 \midrule
-Subtotal de horas planificadas & 360 & & & \\
-Horas de contingencia y ajustes (10\%) & 40 & & & \\
+Subtotal de horas planificadas & 720 & 360 & 360 & & \\
+Horas de contingencia y ajustes experimentales (10\%) & 80 & 40 & 40 & & \\
 \midrule
-\textbf{Total planificado} & \textbf{400} & & & \\
+\textbf{Total de dedicación académica del proyecto} & \textbf{800} & \textbf{400} & \textbf{400} & & \textbf{Cumplimiento individual} \\
 \bottomrule
 \end{tabular}
-\notatabla{Distribución del esfuerzo de ingeniería en 360 horas de ejecución técnica y 40 horas de contingencia para imprevistos o ajustes experimentales, completando las 400 horas reglamentarias.}
+\notatabla{Distribución horaria reglamentaria que certifica 400 horas individuales de trabajo académico para Victor Jesús Totoy Iza y 400 horas individuales para Rodolfo Damián Seminario Murillo, totalizando 800 horas hombre conjuntas.}
 \end{table}
 
 La articulación entre el plan de actividades (Tabla \ref{tab:actividades}) y los hitos institucionales (Tabla \ref{tab:cronograma}) asegura un avance disciplinado y continuo, permitiendo la verificación temprana de los componentes de software antes de la fase de evaluación experimental definitiva.
