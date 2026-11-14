@@ -21,7 +21,7 @@ def enable_update_fields(doc):
         update_fields.set(qn('w:val'), 'true')
 
 def add_header_page_number(section, fmt="decimal", start=None):
-    """Configures right-aligned PAGE field in section header."""
+    """Configures right-aligned PAGE field in section header (Strict APA 7: Times New Roman 12pt, Black)."""
     header = section.header
     header.is_linked_to_previous = False
     p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
@@ -32,7 +32,7 @@ def add_header_page_number(section, fmt="decimal", start=None):
     
     r = p.add_run()
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11)
+    r.font.size = Pt(12)
     r.font.color.rgb = RGBColor(0, 0, 0)
     
     fc_b = OxmlElement('w:fldChar')
@@ -63,17 +63,18 @@ def add_header_page_number(section, fmt="decimal", start=None):
 
 def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
     """
-    Creates a native Word dynamic TOC field (fldChar begin/separate/end) with dot leaders.
+    Creates a native dynamic TOC field with tab dot leaders (pos=9062).
+    Strict APA 7: Times New Roman 12pt, Black (RGB 0,0,0).
     """
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_title.paragraph_format.space_before = Pt(14)
+    p_title.paragraph_format.space_before = Pt(18)
     p_title.paragraph_format.space_after = Pt(12)
     p_title.paragraph_format.keep_with_next = True
     r_title = p_title.add_run(title)
     r_title.bold = True
     r_title.font.name = 'Times New Roman'
-    r_title.font.size = Pt(14)
+    r_title.font.size = Pt(12)  # Strict APA 7: 12 pt
     r_title.font.color.rgb = RGBColor(0, 0, 0)
     
     p_first = doc.add_paragraph()
@@ -111,7 +112,7 @@ def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
         entry_text, entry_page, entry_level = sample_entries[0]
         r_text = p_first.add_run(entry_text)
         r_text.font.name = 'Times New Roman'
-        r_text.font.size = Pt(11)
+        r_text.font.size = Pt(12)  # Strict APA 7: 12 pt
         r_text.font.color.rgb = RGBColor(0, 0, 0)
         
         r_tab = p_first.add_run()
@@ -119,7 +120,7 @@ def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
         
         r_pg = p_first.add_run(str(entry_page))
         r_pg.font.name = 'Times New Roman'
-        r_pg.font.size = Pt(11)
+        r_pg.font.size = Pt(12)
         r_pg.font.color.rgb = RGBColor(0, 0, 0)
         
         for entry_text, entry_page, entry_level in sample_entries[1:]:
@@ -143,7 +144,7 @@ def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
                 
             r_t = p_entry.add_run(entry_text)
             r_t.font.name = 'Times New Roman'
-            r_t.font.size = Pt(11)
+            r_t.font.size = Pt(12)  # Strict APA 7: 12 pt
             r_t.font.color.rgb = RGBColor(0, 0, 0)
             
             r_tb = p_entry.add_run()
@@ -151,7 +152,7 @@ def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
             
             r_p = p_entry.add_run(str(entry_page))
             r_p.font.name = 'Times New Roman'
-            r_p.font.size = Pt(11)
+            r_p.font.size = Pt(12)
             r_p.font.color.rgb = RGBColor(0, 0, 0)
             
     p_end = doc.add_paragraph()
@@ -164,7 +165,9 @@ def add_dynamic_toc_field(doc, title, instr_text, sample_entries=[]):
 
 def add_caption_with_seq(doc, label_type, num, caption_text):
     """
-    Creates an APA 7 caption with SEQ field: 'Tabla 1' or 'Figura 1' + title on next line.
+    Creates a strict APA 7 caption:
+    Line 1: Tabla 1 or Figura 1 (Bold, 12 pt, Black)
+    Line 2: Title in italics (Italic, 12 pt, Black)
     """
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(14)
@@ -175,7 +178,8 @@ def add_caption_with_seq(doc, label_type, num, caption_text):
     r_lbl = p.add_run(f"{label_type} ")
     r_lbl.bold = True
     r_lbl.font.name = 'Times New Roman'
-    r_lbl.font.size = Pt(11)
+    r_lbl.font.size = Pt(12)
+    r_lbl.font.color.rgb = RGBColor(0, 0, 0)
     
     r_b = p.add_run()
     fc_b = OxmlElement('w:fldChar')
@@ -196,7 +200,8 @@ def add_caption_with_seq(doc, label_type, num, caption_text):
     r_v = p.add_run(str(num))
     r_v.bold = True
     r_v.font.name = 'Times New Roman'
-    r_v.font.size = Pt(11)
+    r_v.font.size = Pt(12)
+    r_v.font.color.rgb = RGBColor(0, 0, 0)
     
     r_e = p.add_run()
     fc_e = OxmlElement('w:fldChar')
@@ -209,7 +214,8 @@ def add_caption_with_seq(doc, label_type, num, caption_text):
     r_txt = p.add_run(f"{caption_text}")
     r_txt.italic = True
     r_txt.font.name = 'Times New Roman'
-    r_txt.font.size = Pt(11)
+    r_txt.font.size = Pt(12)
+    r_txt.font.color.rgb = RGBColor(0, 0, 0)
     
     return p
 
@@ -224,6 +230,7 @@ def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
     tcPr.append(tcMar)
 
 def set_cell_border(cell, **kwargs):
+    """Sets cell borders in pure black (APA 7 standard: strictly black lines, no blue)."""
     tcPr = cell._tc.get_or_add_tcPr()
     tcBorders = OxmlElement('w:tcBorders')
     for edge in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
@@ -234,7 +241,7 @@ def set_cell_border(cell, **kwargs):
             element.set(qn('w:val'), edge_data.get('val', 'single'))
             element.set(qn('w:sz'), str(edge_data.get('sz', 4)))
             element.set(qn('w:space'), '0')
-            element.set(qn('w:color'), edge_data.get('color', 'auto'))
+            element.set(qn('w:color'), edge_data.get('color', '000000'))  # Pure black
             tcBorders.append(element)
     tcPr.append(tcBorders)
 
@@ -243,52 +250,50 @@ def create_anteproyecto_word(output_paths):
     base_dir = r"c:\Users\lenovo\Desktop\AgenteVentasPower"
 
     # =========================================================================
-    # CONFIGURACIÓN GENERAL Y ESTILOS NATIVOS
+    # CONFIGURACIÓN GENERAL Y ESTILOS ESTRICTOS APA 7.ª EDICIÓN
     # =========================================================================
     enable_update_fields(doc)
 
-    # Configuración de estilos para que Word reconozca Headings en TOC
     styles = doc.styles
 
-    # Normal Style (Times New Roman 12 pt, 1.5 interlineado)
+    # Normal Style (Times New Roman 12 pt, Negro absoluto #000000)
     style_normal = styles['Normal']
     font_normal = style_normal.font
     font_normal.name = 'Times New Roman'
     font_normal.size = Pt(12)
     font_normal.color.rgb = RGBColor(0, 0, 0)
 
-    # Heading 1
+    # Heading 1 (APA 7 Nivel 1: 12 pt, Negrita, Centrado, Negro #000000)
     h1 = styles['Heading 1']
     h1.font.name = 'Times New Roman'
-    h1.font.size = Pt(13)
+    h1.font.size = Pt(12)  # Strict APA 7: 12 pt
     h1.font.bold = True
-    h1.font.color.rgb = RGBColor(0, 51, 102)
+    h1.font.color.rgb = RGBColor(0, 0, 0)  # Pure Black
     h1_pPr = h1.element.get_or_add_pPr()
     if h1_pPr.find(qn('w:outlineLvl')) is None:
         h1_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="0"/>' % nsdecls('w')))
 
-    # Heading 2
+    # Heading 2 (APA 7 Nivel 2: 12 pt, Negrita, Alineado a la Izquierda, Negro #000000)
     h2 = styles['Heading 2']
     h2.font.name = 'Times New Roman'
-    h2.font.size = Pt(12)
+    h2.font.size = Pt(12)  # Strict APA 7: 12 pt
     h2.font.bold = True
-    h2.font.color.rgb = RGBColor(0, 0, 0)
+    h2.font.color.rgb = RGBColor(0, 0, 0)  # Pure Black
     h2_pPr = h2.element.get_or_add_pPr()
     if h2_pPr.find(qn('w:outlineLvl')) is None:
         h2_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="1"/>' % nsdecls('w')))
 
-    # Heading 3
+    # Heading 3 (APA 7 Nivel 3: 12 pt, Negrita Cursiva, Alineado a la Izquierda, Negro #000000)
     h3 = styles['Heading 3']
     h3.font.name = 'Times New Roman'
-    h3.font.size = Pt(11.5)
+    h3.font.size = Pt(12)  # Strict APA 7: 12 pt
     h3.font.bold = True
     h3.font.italic = True
-    h3.font.color.rgb = RGBColor(30, 30, 30)
+    h3.font.color.rgb = RGBColor(0, 0, 0)  # Pure Black
     h3_pPr = h3.element.get_or_add_pPr()
     if h3_pPr.find(qn('w:outlineLvl')) is None:
         h3_pPr.append(parse_xml(r'<w:outlineLvl %s w:val="2"/>' % nsdecls('w')))
 
-    # Helpers de adición de elementos
     def add_h1(text):
         p = doc.add_paragraph(text, style='Heading 1')
         p.paragraph_format.space_before = Pt(18)
@@ -325,9 +330,11 @@ def create_anteproyecto_word(output_paths):
             rb.font.name = 'Times New Roman'
             rb.font.size = Pt(12)
             rb.font.bold = True
+            rb.font.color.rgb = RGBColor(0, 0, 0)
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
         r.font.size = Pt(12)
+        r.font.color.rgb = RGBColor(0, 0, 0)
         return p
 
     def add_bullet(text, bold_prefix=None):
@@ -338,11 +345,13 @@ def create_anteproyecto_word(output_paths):
         if bold_prefix:
             rb = p.add_run(bold_prefix)
             rb.font.name = 'Times New Roman'
-            rb.font.size = Pt(11.5)
+            rb.font.size = Pt(12)
             rb.font.bold = True
+            rb.font.color.rgb = RGBColor(0, 0, 0)
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = Pt(11.5)
+        r.font.size = Pt(12)
+        r.font.color.rgb = RGBColor(0, 0, 0)
         return p
 
     def add_numbered(num_str, text, bold_prefix=None):
@@ -353,16 +362,19 @@ def create_anteproyecto_word(output_paths):
         p.paragraph_format.first_line_indent = Inches(-0.25)
         rn = p.add_run(num_str + " ")
         rn.font.name = 'Times New Roman'
-        rn.font.size = Pt(11.5)
+        rn.font.size = Pt(12)
         rn.font.bold = True
+        rn.font.color.rgb = RGBColor(0, 0, 0)
         if bold_prefix:
             rb = p.add_run(bold_prefix + " ")
             rb.font.name = 'Times New Roman'
-            rb.font.size = Pt(11.5)
+            rb.font.size = Pt(12)
             rb.font.bold = True
+            rb.font.color.rgb = RGBColor(0, 0, 0)
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = Pt(11.5)
+        r.font.size = Pt(12)
+        r.font.color.rgb = RGBColor(0, 0, 0)
         return p
 
     def add_note(note_text):
@@ -374,12 +386,14 @@ def create_anteproyecto_word(output_paths):
         r1.font.name = 'Times New Roman'
         r1.font.size = Pt(10)
         r1.font.italic = True
+        r1.font.color.rgb = RGBColor(0, 0, 0)
         r2 = p.add_run(note_text)
         r2.font.name = 'Times New Roman'
         r2.font.size = Pt(10)
+        r2.font.color.rgb = RGBColor(0, 0, 0)
 
     # =========================================================================
-    # SECCIÓN 0: CARÁTULA OFICIAL (Sin encabezado ni pie)
+    # SECCIÓN 0: CARÁTULA OFICIAL (Estilo Académico Sobrio APA 7)
     # =========================================================================
     sec_cover = doc.sections[0]
     sec_cover.top_margin = Inches(1.0)
@@ -402,98 +416,109 @@ def create_anteproyecto_word(output_paths):
     p_univ.paragraph_format.space_after = Pt(2)
     r = p_univ.add_run("UNIVERSIDAD POLITÉCNICA SALESIANA")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(17)
+    r.font.size = Pt(14)  # Sobrio académico
     r.font.bold = True
-    r.font.color.rgb = RGBColor(0, 51, 102)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_sede = doc.add_paragraph()
     p_sede.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_sede.paragraph_format.space_after = Pt(16)
+    p_sede.paragraph_format.space_after = Pt(14)
     r = p_sede.add_run("SEDE GUAYAQUIL")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(13.5)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_carrera = doc.add_paragraph()
     p_carrera.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_carrera.paragraph_format.space_after = Pt(16)
+    p_carrera.paragraph_format.space_after = Pt(14)
     r = p_carrera.add_run("CARRERA DE COMPUTACIÓN")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(13)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_anteproy = doc.add_paragraph()
     p_anteproy.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_anteproy.paragraph_format.space_after = Pt(4)
     r = p_anteproy.add_run("ANTEPROYECTO DE TITULACIÓN")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(13.5)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_previo = doc.add_paragraph()
     p_previo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_previo.paragraph_format.space_after = Pt(22)
+    p_previo.paragraph_format.space_after = Pt(20)
     r = p_previo.add_run("Previo a la obtención del título de Ingeniero en Ciencias de la Computación")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11)
+    r.font.size = Pt(12)
     r.font.italic = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_lbl_tema = doc.add_paragraph()
     p_lbl_tema.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_lbl_tema.paragraph_format.space_after = Pt(4)
     r = p_lbl_tema.add_run("TÍTULO")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_tema = doc.add_paragraph()
     p_tema.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_tema.paragraph_format.space_after = Pt(26)
+    p_tema.paragraph_format.space_after = Pt(24)
     r = p_tema.add_run("Desarrollo de un agente inteligente con recuperación verificable de información técnica para la atención comercial y cotización en Power Electrimk")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_lbl_aut = doc.add_paragraph()
     p_lbl_aut.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_lbl_aut.paragraph_format.space_after = Pt(4)
     r = p_lbl_aut.add_run("AUTORES")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_aut = doc.add_paragraph()
     p_aut.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_aut.paragraph_format.space_after = Pt(22)
+    p_aut.paragraph_format.space_after = Pt(20)
     r1 = p_aut.add_run("Victor Jesus Totoy Iza\nRodolfo Damián Seminario Murillo")
     r1.font.name = 'Times New Roman'
-    r1.font.size = Pt(11.5)
+    r1.font.size = Pt(12)
     r1.font.bold = True
+    r1.font.color.rgb = RGBColor(0, 0, 0)
 
     p_lbl_tut = doc.add_paragraph()
     p_lbl_tut.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_lbl_tut.paragraph_format.space_after = Pt(4)
     r = p_lbl_tut.add_run("TUTOR")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_tut = doc.add_paragraph()
     p_tut.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_tut.paragraph_format.space_after = Pt(30)
+    p_tut.paragraph_format.space_after = Pt(26)
     r = p_tut.add_run("Ing. Joe Llerena Izquierdo, M.Sc., Ph.D.")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11.5)
+    r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_fecha = doc.add_paragraph()
     p_fecha.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = p_fecha.add_run("Guayaquil, noviembre del 2026")
     r.font.name = 'Times New Roman'
-    r.font.size = Pt(11)
+    r.font.size = Pt(12)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     # =========================================================================
-    # SECCIÓN 1: ÍNDICES DINÁMICOS NATIVOS (Páginas i, ii, iii...)
+    # SECCIÓN 1: ÍNDICES DINÁMICOS NATIVOS (Páginas i, ii, iii... en lowerRoman)
     # =========================================================================
     sec_indices = doc.add_section(WD_SECTION.NEW_PAGE)
     sec_indices.top_margin = Inches(1.0)
@@ -503,6 +528,7 @@ def create_anteproyecto_word(output_paths):
     add_header_page_number(sec_indices, fmt="lowerRoman", start=1)
 
     # 1. Índice General (TOC dinámico nativo)
+    # Las entradas cacheadas coinciden exactamente al 100% con los títulos del cuerpo
     sample_toc = [
         ("1. Tema del Trabajo de Titulación", 1, 1),
         ("2. Antecedentes", 1, 1),
@@ -527,7 +553,7 @@ def create_anteproyecto_word(output_paths):
         ("11.3. Anexo 3: Diagrama de arquitectura de software y flujo de procesamiento", 24, 2),
         ("11.4. Anexo 4: Repositorio de código abierto y transparencia de datos (ABET IV.3)", 26, 2)
     ]
-    add_dynamic_toc_field(doc, "Índice General", 'TOC \\h \\o "1-2"', sample_toc)
+    add_dynamic_toc_field(doc, "Índice", 'TOC \\h \\o "1-2"', sample_toc)
 
     # Salto de página para Índice de Figuras
     doc.add_page_break()
@@ -575,7 +601,7 @@ def create_anteproyecto_word(output_paths):
 
     add_p("Para resolver esta brecha, el presente proyecto técnico desarrollará un agente inteligente para la atención comercial y cotización de materiales eléctricos que integrará un modelo generativo multimodal con un mecanismo de recuperación local de catálogos estructurados sobre una base de datos embebida SQLite con registro en modo Write-Ahead Logging (Gaffney, 2022). El agente operará como un servicio web asíncrono en .NET 8 conectado a la API oficial de WhatsApp Cloud y al modelo fundacional Gemini, tomando como escenario experimental a la distribuidora Power Electrimk de la ciudad de Guayaquil. Siguiendo la línea de investigación de Ayala-Carabajo y Llerena-Izquierdo (2026) sobre dominios cognitivos y sistemas inteligentes, la propuesta automatiza el embudo de ventas técnicas anclando deterministamente cada consulta a registros verificables de catálogo, garantizando precios exactos, latencia de respuesta sub-cuatro segundos, trazabilidad del cliente y derivación asistida hacia asesores comerciales humanos con costos de infraestructura mínimos. En la Tabla 1 se presenta el análisis comparativo del estado del arte.")
 
-    # Tabla 1 con SEQ Tabla
+    # Tabla 1 con SEQ Tabla (Bordes negros puros APA 7)
     add_caption_with_seq(doc, "Tabla", 1, "Comparativa de trabajos previos en sistemas conversacionales para comercio técnico")
     table1 = doc.add_table(rows=6, cols=4)
     table1.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -583,10 +609,12 @@ def create_anteproyecto_word(output_paths):
     for i, h in enumerate(headers):
         cell = table1.cell(0, i)
         cell.text = h
+        cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.size = Pt(10)
-        set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
-                              bottom={"sz": 8, "val": "single", "color": "003366"})
+        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
+        set_cell_border(cell, top={"sz": 12, "val": "single", "color": "000000"},
+                              bottom={"sz": 6, "val": "single", "color": "000000"})
         set_cell_margins(cell, 80, 80, 100, 100)
 
     rows_data_1 = [
@@ -600,10 +628,12 @@ def create_anteproyecto_word(output_paths):
         for c_idx, val in enumerate(r_data):
             cell = table1.cell(r_idx, c_idx)
             cell.text = val
+            cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
             cell.paragraphs[0].runs[0].font.size = Pt(9.5)
+            cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
             set_cell_margins(cell, 60, 60, 100, 100)
             if r_idx == len(rows_data_1):
-                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "003366"})
+                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "000000"})
 
     add_note("Elaboración propia a partir de la revisión sistemática de literatura sobre arquitecturas conversacionales.")
 
@@ -716,15 +746,20 @@ def create_anteproyecto_word(output_paths):
         for c_idx, val in enumerate(row):
             cell = t2.cell(r_idx, c_idx)
             cell.text = val
+            cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
+            cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
             set_cell_margins(cell, 60, 60, 80, 80)
             if r_idx == 0:
                 cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
-                                      bottom={"sz": 8, "val": "single", "color": "003366"})
-            elif r_idx == 6:
-                cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 8, "val": "single", "color": "003366"},
-                                      bottom={"sz": 12, "val": "single", "color": "003366"})
+                cell.paragraphs[0].runs[0].font.size = Pt(10)
+                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "000000"},
+                                      bottom={"sz": 6, "val": "single", "color": "000000"})
+            else:
+                cell.paragraphs[0].runs[0].font.size = Pt(9.5)
+                if r_idx == 6:
+                    cell.paragraphs[0].runs[0].font.bold = True
+                    set_cell_border(cell, top={"sz": 6, "val": "single", "color": "000000"},
+                                          bottom={"sz": 12, "val": "single", "color": "000000"})
 
     add_note("Cronograma oficial de hitos académicos y ponderaciones de avance de acuerdo con la planificación de la Universidad Politécnica Salesiana. Cada estudiante cumple de forma independiente las 400 horas académicas reglamentarias exigidas institucionalmente para proyectos desarrollados en pareja, consolidando 800 horas de dedicación conjunta.")
 
@@ -754,16 +789,21 @@ def create_anteproyecto_word(output_paths):
         for c_idx, val in enumerate(row):
             cell = t3.cell(r_idx, c_idx)
             cell.text = val
+            cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
+            cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
             set_cell_margins(cell, 50, 50, 80, 80)
             if r_idx == 0:
                 cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
-                                      bottom={"sz": 8, "val": "single", "color": "003366"})
-            elif "Fase" in val and c_idx == 0:
-                cell.paragraphs[0].runs[0].font.bold = True
-                cell.paragraphs[0].runs[0].font.italic = True
-            elif r_idx == len(t3_data) - 1:
-                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "003366"})
+                cell.paragraphs[0].runs[0].font.size = Pt(10)
+                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "000000"},
+                                      bottom={"sz": 6, "val": "single", "color": "000000"})
+            else:
+                cell.paragraphs[0].runs[0].font.size = Pt(9.5)
+                if "Fase" in val and c_idx == 0:
+                    cell.paragraphs[0].runs[0].font.bold = True
+                    cell.paragraphs[0].runs[0].font.italic = True
+                elif r_idx == len(t3_data) - 1:
+                    set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "000000"})
 
     add_note("Distribución del esfuerzo de ingeniería en 720 horas de ejecución técnica y 80 horas de contingencia para imprevistos o ajustes experimentales, completando las 800 horas conjuntas reglamentarias (400 horas por estudiante).")
 
@@ -772,8 +812,6 @@ def create_anteproyecto_word(output_paths):
     add_p("El presupuesto estimado para la ejecución integral del proyecto de titulación considera tanto la valoración formal del esfuerzo de ingeniería de software (mano de obra de los tesistas), como el dimensionamiento técnico de la infraestructura computacional en la nube, conectividad, licencias de consumo y suministros requeridos para el ciclo de vida del software. En la Tabla 4 se expone la valoración económica formal de mercado del proyecto, cuantificada conforme a precios estándar de la industria del software.")
 
     add_caption_with_seq(doc, "Tabla", 4, "Presupuesto detallado y valoración económica de mercado del proyecto de titulación")
-    t4 = doc.add_table(rows=14, cols=3)
-    t4.alignment = WD_TABLE_ALIGNMENT.CENTER
     t4_data = [
         ["Categoría / Rubro", "Descripción y dedicación del recurso", "Valor de mercado (USD)"],
         ["1. Mano de obra de ingeniería y desarrollo (Tesistas)", "", ""],
@@ -790,21 +828,28 @@ def create_anteproyecto_word(output_paths):
         ["Fondo de contingencia", "Margen para imprevistos operativos y pruebas adicionales (10%)", "40.00"],
         ["Valor total estimado de mercado del proyecto", "Suma ponderada de mano de obra y recursos tecnológicos", "8430.00"]
     ]
+    t4 = doc.add_table(rows=len(t4_data), cols=3)
+    t4.alignment = WD_TABLE_ALIGNMENT.CENTER
     for r_idx, row in enumerate(t4_data):
         for c_idx, val in enumerate(row):
             cell = t4.cell(r_idx, c_idx)
             cell.text = val
+            cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
+            cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
             set_cell_margins(cell, 50, 50, 80, 80)
             if r_idx == 0:
                 cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
-                                      bottom={"sz": 8, "val": "single", "color": "003366"})
-            elif "Mano de obra" in val or "Infraestructura" in val:
-                cell.paragraphs[0].runs[0].font.bold = True
-            elif r_idx == 13:
-                cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 8, "val": "single", "color": "003366"},
-                                      bottom={"sz": 12, "val": "single", "color": "003366"})
+                cell.paragraphs[0].runs[0].font.size = Pt(10)
+                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "000000"},
+                                      bottom={"sz": 6, "val": "single", "color": "000000"})
+            else:
+                cell.paragraphs[0].runs[0].font.size = Pt(9.5)
+                if "Mano de obra" in val or "Infraestructura" in val:
+                    cell.paragraphs[0].runs[0].font.bold = True
+                elif r_idx == len(t4_data) - 1:
+                    cell.paragraphs[0].runs[0].font.bold = True
+                    set_cell_border(cell, top={"sz": 6, "val": "single", "color": "000000"},
+                                          bottom={"sz": 12, "val": "single", "color": "000000"})
 
     add_note("Valores expresados en dólares de los Estados Unidos de América (USD), calculados a tarifas vigentes a noviembre de 2026. La tarifa horaria de 10.00 USD/h se fundamenta en los valores referenciales de mercado para desarrolladores de software junior en Ecuador. Los costos directos de suministros (195.00 USD) y la mano de obra de investigación (8000.00 USD) son asumidos íntegramente por los autores.")
 
@@ -829,15 +874,20 @@ def create_anteproyecto_word(output_paths):
         for c_idx, val in enumerate(row):
             cell = t5.cell(r_idx, c_idx)
             cell.text = val
+            cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
+            cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
             set_cell_margins(cell, 50, 50, 70, 70)
             if r_idx == 0:
                 cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
-                                      bottom={"sz": 8, "val": "single", "color": "003366"})
-            elif r_idx == len(t5_data) - 1:
-                cell.paragraphs[0].runs[0].font.bold = True
-                set_cell_border(cell, top={"sz": 8, "val": "single", "color": "003366"},
-                                      bottom={"sz": 12, "val": "single", "color": "003366"})
+                cell.paragraphs[0].runs[0].font.size = Pt(10)
+                set_cell_border(cell, top={"sz": 12, "val": "single", "color": "000000"},
+                                      bottom={"sz": 6, "val": "single", "color": "000000"})
+            else:
+                cell.paragraphs[0].runs[0].font.size = Pt(9.5)
+                if r_idx == len(t5_data) - 1:
+                    cell.paragraphs[0].runs[0].font.bold = True
+                    set_cell_border(cell, top={"sz": 6, "val": "single", "color": "000000"},
+                                          bottom={"sz": 12, "val": "single", "color": "000000"})
 
     add_note("Datos recopilados de la documentación técnica y tablas de facturación de Google AI Studio, Amazon Web Services Free Tier y Meta for Developers (noviembre 2026). El desembolso efectivo real asumido por los tesistas se limita estrictamente a suministros de oficina e impresiones (195.00 USD), ratificando la plena factibilidad presupuestaria de la investigación.")
 
@@ -858,7 +908,7 @@ def create_anteproyecto_word(output_paths):
         "Gaffney, K. (2022). SQLite: Past, Present, and Future. Proceedings of the 2022 International Conference on Management of Data (SIGMOD '22), 2465–2467. https://doi.org/10.1145/3514221.3524075",
         "Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., Dai, Y., Sun, J., & Wang, H. (2023). Retrieval-Augmented Generation for Large Language Models: A Survey. arXiv Preprint arXiv:2312.10997. https://doi.org/10.48550/arXiv.2312.10997",
         "Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., & Fritz, M. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security (AISEC '23), 79–90. https://doi.org/10.1145/3605764.3623982",
-        "Guu, K., Lee, K., Tung, Z., Pasupat, P., & Chang, M.-W. (2020). REALM: Retrieval-Augmented Language Model Pre-Training. Proceedings of the 37th International Conference on Machine Learning (ICML 2020), 119, 3929–3938. https://proceedings.mlr.press/v119/guu20a.html",
+        "Guu, K., Lee, K., Tung, Z., Pasupat, P., & Chang, M.-W. (2020). REALM: Retrieval-Augmented Language Model Pre-Training. Proceedings of the 37th International Conference on Machine Learning (ICML 2020), 119, 3929–3938. https://proceedings.neurips.cc/paper/2020/hash/6b493230205f780e1bc26945df7481e5-Abstract.html",
         "Han, M. C. (2023). The effect of conversational AI chatbot's perceived competence, empathy, and conversational quality on customer satisfaction and purchase intention. Journal of Global Fashion Marketing, 14(4), 391–406. https://doi.org/10.1088/20932685.2023.2209772",
         "Huang, L., Yu, W., Ma, W., Zhong, W., Feng, Z., Wang, H., Chen, Q., Peng, W., Feng, X., Qin, B., & Liu, T. (2023). A Survey on Hallucination in Large Language Models: Principles, Taxonomy, Challenges, and Open Questions. arXiv Preprint arXiv:2311.05232. https://doi.org/10.48550/arXiv.2311.05232",
         "ISO/IEC. (2011). Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models (Standard ISO/IEC 25010:2011). International Organization for Standardization. https://www.iso.org/standard/35733.html",
@@ -881,7 +931,7 @@ def create_anteproyecto_word(output_paths):
         "Tonmoy, S. M. T. I., Zaman, S. M., Jain, V., Rani, A., Rawte, V., Chadha, A., & Das, A. (2024). A Comprehensive Survey of Hallucination in Large Language Models. arXiv Preprint arXiv:2402.04944. https://doi.org/10.48550/arXiv.2402.04944",
         "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I. (2017). Attention is All you Need. Advances in Neural Information Processing Systems (NeurIPS 2017), 30, 5998–6008. https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html",
         "Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Chen, J., Tang, J., Chen, X., Lin, Y., Zhao, W. X., Wei, Z., & Wen, J.-R. (2024). A survey on large language model based autonomous agents. Frontiers of Computer Science, 18(6), 186345. https://doi.org/10.1007/s11704-024-40231-1",
-        "Wu, Q., Bansal, G., Zhang, J., Wu, Y., Zhang, S., Erkens, E., Kiciman, E.,王, H., Liang, Q., & Wang, C. (2023). AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation Framework. arXiv Preprint arXiv:2308.08155. https://doi.org/10.48550/arXiv.2308.08155",
+        "Wu, Q., Bansal, G., Zhang, J., Wu, Y., Zhang, S., Erkens, E., Kiciman, E., Wang, H., Liang, Q., & Wang, C. (2023). AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation Framework. arXiv Preprint arXiv:2308.08155. https://doi.org/10.48550/arXiv.2308.08155",
         "Zerega-Prado, J., & Llerena-Izquierdo, J. (2022). Arquitectura de consolidación de la información para seguros de la salud mediante Big Data. Memoria Investigaciones en Ingeniería, 23, 18–31. https://doi.org/10.36561/ING.23.3"
     ]
     for ref in referencias:
@@ -894,6 +944,7 @@ def create_anteproyecto_word(output_paths):
         r = p_ref.add_run(ref)
         r.font.name = 'Times New Roman'
         r.font.size = Pt(10)
+        r.font.color.rgb = RGBColor(0, 0, 0)
 
     # --- SECCIÓN 11: ANEXOS ---
     doc.add_page_break()
@@ -941,10 +992,12 @@ def create_anteproyecto_word(output_paths):
     for i, h in enumerate(t6_headers):
         cell = t6.cell(0, i)
         cell.text = h
+        cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.size = Pt(8.5)
-        set_cell_border(cell, top={"sz": 12, "val": "single", "color": "003366"},
-                              bottom={"sz": 8, "val": "single", "color": "003366"})
+        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
+        set_cell_border(cell, top={"sz": 12, "val": "single", "color": "000000"},
+                              bottom={"sz": 6, "val": "single", "color": "000000"})
         set_cell_margins(cell, 40, 40, 50, 50)
 
     t6_rows = [
@@ -985,10 +1038,12 @@ def create_anteproyecto_word(output_paths):
         for c_idx, val in enumerate(row):
             cell = t6.cell(r_idx, c_idx)
             cell.text = val
+            cell.paragraphs[0].runs[0].font.name = 'Times New Roman'
             cell.paragraphs[0].runs[0].font.size = Pt(8)
+            cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
             set_cell_margins(cell, 30, 30, 40, 40)
             if r_idx == 4:
-                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "003366"})
+                set_cell_border(cell, bottom={"sz": 12, "val": "single", "color": "000000"})
 
     add_note("Matriz adaptada de la plantilla oficial de consistencia de la investigación UPS Sede Guayaquil (P69).")
 
