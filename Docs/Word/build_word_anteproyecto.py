@@ -587,12 +587,12 @@ def create_anteproyecto_word(output_paths):
     sec_body.right_margin = Inches(1.0)
     add_header_page_number(sec_body, fmt="decimal", start=1)
 
-    # --- SECCIÓN 1: TEMA ---
-    add_h1("1. Tema del Trabajo de Titulación")
-    add_p("Desarrollo de un agente inteligente con recuperación verificable de información técnica para la atención comercial y cotización en Power Electrimk", indent=False)
+    # --- SECCIÓN 1: TÍTULO ---
+    add_h1("1. Título")
+    add_p("Sistema Multi-Agente con IA Generativa y Recuperación Verificable de Información Técnica para la Automatización del Proceso de Cotización Comercial en la Empresa Power Electrimk", indent=False)
 
-    # --- SECCIÓN 2: ANTECEDENTES ---
-    add_h1("2. Antecedentes")
+    # --- SECCIÓN 2: PROBLEMA DE ESTUDIO Y ANTECEDENTES ---
+    add_h1("2. Problema de estudio y antecedentes")
     add_p("Actualmente, el comercio conversacional a través de plataformas de mensajería instantánea constituye el canal preponderante de captación y venta técnica para las pequeñas y medianas empresas comerciales (Adamopoulou & Moussiades, 2020; Adam et al., 2021; Følstad et al., 2020; Luo et al., 2019). En el sector de la distribución de materiales eléctricos e ingeniería en la ciudad de Guayaquil, contratistas independientes, técnicos electricistas y empresas constructoras demandan cotizaciones inmediatas y continuas que involucran especificaciones rigurosas de marcas líderes como Schneider Electric, Siemens, Legrand, Centelsa y ABB. No obstante, este proceso se gestiona tradicionalmente de forma manual mediante asesores de mostrador que deben consultar dispersos catálogos en formato PDF y extensas hojas de cálculo de precios. En el marco del presente anteproyecto, se llevó a cabo un estudio de campo empírico en la distribuidora Power Electrimk durante el tercer trimestre de 2026, mediante el muestreo sistemático de 120 interacciones comerciales recibidas en el canal institucional de WhatsApp y entrevistas a su equipo comercial de ventas de mostrador (3 asesores técnicos). Dicha telemetría evidenció que el tiempo promedio de respuesta oscila entre 135 y 490 minutos (2,25 a 8,16 horas) en jornadas de alta demanda, ocasionando una tasa documentada de abandono de solicitud de cotización del 28,4% (con picos muestrales entre el 20% y el 35%), dado que los clientes técnicos migran hacia competidores con atención inmediata. De no implementarse mecanismos tecnológicos que sistematicen la atención, las distribuidoras enfrentan un incremento sostenido de sus costos operativos y el deterioro gradual de la fidelización de sus clientes (Llerena-Izquierdo & Ayala-Carabajo, 2022; Llerena-Izquierdo & Ayala-Carabajo, 2025).")
 
     add_p("Diversas investigaciones previas abordaron la automatización del servicio al cliente mediante sistemas conversacionales computacionales. Adamopoulou y Moussiades (2020) documentaron la evolución histórica de los agentes conversacionales, demostrando que las arquitecturas iniciales basadas en árboles de decisión y expresiones regulares presentan una rigidez severa ante la variabilidad del lenguaje natural no contemplado en su diseño. Adam et al. (2021) y Sands et al. (2021) evidenciaron que la incorporación de señales de interacción antropomórfica y presencia social en asistentes virtuales incrementa la tasa de adopción y cumplimiento de los usuarios, mientras que Ashfaq et al. (2020) y Han (2023) modelaron los determinantes de satisfacción e intención de compra en entornos de comercio electrónico conversacional. Con la introducción de la arquitectura Transformer por Vaswani et al. (2017), los Modelos de Lenguaje Extenso (LLM) transformaron el procesamiento del lenguaje; consecuentemente, Wang et al. (2024) sistematizaron su aplicación en agentes autónomos capaces de inferir intenciones complejas y orquestar herramientas. Sin embargo, Ji et al. (2023) y Huang et al. (2023) demostraron que los modelos generativos producen alucinaciones probabilísticas al responder sobre datos no presentes en su entrenamiento, lo que resulta crítico en transacciones comerciales al alterar precios o inventarios. Para mitigar esta debilidad, Guu et al. (2020) y Lewis et al. (2020) formularon los fundamentos de la Generación Aumentada por Recuperación (RAG), mientras que Borgeaud et al. (2022) y Gao et al. (2023) profundizaron en modelos de recuperación densa sobre corpus masivos. Asimismo, mientras que Wu et al. (2023) plantearon esquemas multiagente que requieren clústeres de servidores y múltiples llamadas secuenciales a los modelos, y Asai et al. (2024) propusieron marcos de auto-reflexión computacionalmente densos, Llerena-Izquierdo et al. (2024) y Llerena-Izquierdo, Fiallos-Vargas, et al. (2024) validaron en el entorno local la factibilidad y eficacia de emplear modelos fundacionales modernos de alta velocidad (Gemini) en procesos aplicados.")
@@ -727,7 +727,7 @@ def create_anteproyecto_word(output_paths):
     add_bullet("Grado de aceptación de la herramienta por parte de los asesores comerciales de mostrador mediante cuestionario estandarizado basado en el Modelo de Aceptación Tecnológica (TAM), evaluando Utilidad Percibida (PU) y Facilidad de Uso Percibida (PEOU) en escala Likert de 1 a 5.", bold_prefix="Aceptación funcional (TAM): ")
 
     # --- SECCIÓN 8: CRONOGRAMA ---
-    add_h1("8. Cronograma de actividades")
+    add_h1("8. Cronograma y actividades para desarrollar")
     add_p("El desarrollo del proyecto de titulación se estructurará a lo largo de un período académico regular, ajustándose de forma estricta a los hitos de evaluación y seguimiento dispuestos por la Comisión de Titulación de la carrera, tal como se detalla en la Tabla 2.")
 
     add_caption_with_seq(doc, "Tabla", 2, "Cronograma de hitos institucionales y distribución de carga horaria (800 horas de dedicación conjunta)")
@@ -808,7 +808,7 @@ def create_anteproyecto_word(output_paths):
     add_note("Distribución del esfuerzo de ingeniería en 720 horas de ejecución técnica y 80 horas de contingencia para imprevistos o ajustes experimentales, completando las 800 horas conjuntas reglamentarias (400 horas por estudiante).")
 
     # --- SECCIÓN 9: PRESUPUESTO ---
-    add_h1("9. Presupuesto del proyecto de titulación")
+    add_h1("9. Presupuesto")
     add_p("El presupuesto estimado para la ejecución integral del proyecto de titulación considera tanto la valoración formal del esfuerzo de ingeniería de software (mano de obra de los tesistas), como el dimensionamiento técnico de la infraestructura computacional en la nube, conectividad, licencias de consumo y suministros requeridos para el ciclo de vida del software. En la Tabla 4 se expone la valoración económica formal de mercado del proyecto, cuantificada conforme a precios estándar de la industria del software.")
 
     add_caption_with_seq(doc, "Tabla", 4, "Presupuesto detallado y valoración económica de mercado del proyecto de titulación")
