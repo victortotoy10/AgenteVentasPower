@@ -515,3 +515,11 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Word generation temporary folder and lock files
+Docs/Word/
+Documentos/Word/
+Word/
+*.docx
+.~lock.*
+.~lock.*.docx#
