@@ -559,7 +559,28 @@ public class DatabaseService
         { "osciloscopios", ["scopemeter", "190-204", "125b", "fluke"] },
         { "vibracion", ["vibraciones", "805", "810", "830", "fluke"] },
         { "vibraciones", ["vibracion", "805", "810", "830", "fluke"] },
-        { "fluke", ["multimetro", "pinza", "tester", "termografia", "87v", "179", "376fc", "t6"] }
+        { "fluke", ["multimetro", "pinza", "tester", "termografia", "87v", "179", "376fc", "t6"] },
+
+        // Sistemas de Alimentación Ininterrumpida (UPS), Racks y Protección (APC)
+        { "ups", ["apc", "sai", "nobreak", "smart-ups", "back-ups", "easy", "srt", "srtl", "smt", "srv"] },
+        { "upss", ["apc", "sai", "nobreak", "smart-ups", "back-ups", "easy", "srt", "srtl", "smt", "srv"] },
+        { "sai", ["ups", "apc", "smart-ups", "back-ups", "nobreak", "srt", "smt"] },
+        { "nobreak", ["ups", "apc", "smart-ups", "back-ups", "sai"] },
+        { "bateria", ["rbc", "apcrbc", "apc", "bt521", "srt192bp", "litio"] },
+        { "baterias", ["rbc", "apcrbc", "apc", "bt521", "srt192bp", "litio"] },
+        { "pdu", ["rack", "apc", "ap8858", "ap8959", "ap7921", "epdu", "rPDU"] },
+        { "pdus", ["rack", "apc", "ap8858", "ap8959", "ap7921", "epdu", "rPDU"] },
+        { "rack", ["gabinete", "netshelter", "ar3100", "ar3300", "ar100", "ar3150", "apc"] },
+        { "racks", ["gabinete", "netshelter", "ar3100", "ar3300", "ar100", "ar3150", "apc"] },
+        { "ats", ["conmutador", "transferencia", "ap4421a", "ap4422a", "ap4423a", "ap4430a", "apc"] },
+        { "regulador", ["voltaje", "line-r", "le600", "le1200", "apc"] },
+        { "reguladores", ["voltaje", "line-r", "le600", "le1200", "apc"] },
+        { "apc", ["ups", "smart-ups", "back-ups", "netshelter", "pdu", "srt", "smt", "srtl", "rbc"] },
+        { "smart-ups", ["ups", "srt", "srtl", "smt", "smx", "smc", "apc"] },
+        { "smartups", ["ups", "srt", "srtl", "smt", "smx", "smc", "apc"] },
+        { "back-ups", ["ups", "bvx", "be500", "br1500", "bw650", "apc"] },
+        { "backups", ["ups", "bvx", "be500", "br1500", "bw650", "apc"] },
+        { "symmetra", ["ups", "modular", "sy16k48h", "sypm", "apc"] }
     };
 
     /// <summary>
