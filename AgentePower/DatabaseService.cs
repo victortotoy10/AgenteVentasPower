@@ -566,8 +566,8 @@ public class DatabaseService
         { "upss", ["apc", "sai", "nobreak", "smart-ups", "back-ups", "easy", "srt", "srtl", "smt", "srv"] },
         { "sai", ["ups", "apc", "smart-ups", "back-ups", "nobreak", "srt", "smt"] },
         { "nobreak", ["ups", "apc", "smart-ups", "back-ups", "sai"] },
-        { "bateria", ["rbc", "apcrbc", "apc", "bt521", "srt192bp", "litio"] },
-        { "baterias", ["rbc", "apcrbc", "apc", "bt521", "srt192bp", "litio"] },
+        { "bateria", ["rbc", "apcrbc", "apc", "bt521", "srt192bp", "litio", "lifepo4", "vrla", "syltech", "sylvania"] },
+        { "baterias", ["rbc", "apcrbc", "apc", "bt521", "srt192bp", "litio", "lifepo4", "vrla", "syltech", "sylvania"] },
         { "pdu", ["rack", "apc", "ap8858", "ap8959", "ap7921", "epdu", "rPDU"] },
         { "pdus", ["rack", "apc", "ap8858", "ap8959", "ap7921", "epdu", "rPDU"] },
         { "rack", ["gabinete", "netshelter", "ar3100", "ar3300", "ar100", "ar3150", "apc"] },
@@ -580,7 +580,41 @@ public class DatabaseService
         { "smartups", ["ups", "srt", "srtl", "smt", "smx", "smc", "apc"] },
         { "back-ups", ["ups", "bvx", "be500", "br1500", "bw650", "apc"] },
         { "backups", ["ups", "bvx", "be500", "br1500", "bw650", "apc"] },
-        { "symmetra", ["ups", "modular", "sy16k48h", "sypm", "apc"] }
+        { "symmetra", ["ups", "modular", "sy16k48h", "sypm", "apc"] },
+
+        // Iluminación LED Industrial, Comercial, Vial y Solar (Sylvania)
+        { "iluminacion", ["sylvania", "led", "luminaria", "reflector", "campana", "panel", "tubo"] },
+        { "luminaria", ["sylvania", "led", "panel", "campana", "reflector", "tubo", "downlight", "estanca"] },
+        { "luminarias", ["sylvania", "led", "panel", "campana", "reflector", "tubo", "downlight", "estanca"] },
+        { "lampara", ["sylvania", "led", "toledo", "t8", "t5", "e27", "e40"] },
+        { "lamparas", ["sylvania", "led", "toledo", "t8", "t5", "e27", "e40"] },
+        { "reflector", ["sylvania", "jeta", "sylveo", "flood", "proyector", "ip65", "ip66"] },
+        { "reflectores", ["sylvania", "jeta", "sylveo", "flood", "proyector", "ip65", "ip66"] },
+        { "proyector", ["reflector", "sylvania", "jeta", "sylveo", "sylflood"] },
+        { "proyectores", ["reflector", "sylvania", "jeta", "sylveo", "sylflood"] },
+        { "campana", ["sylvania", "highbay", "gc350", "gc109", "ufo", "canopy", "industrial"] },
+        { "campanas", ["sylvania", "highbay", "gc350", "gc109", "ufo", "canopy", "industrial"] },
+        { "highbay", ["campana", "sylvania", "gc350", "gc109", "ufo"] },
+        { "high-bay", ["campana", "sylvania", "gc350", "gc109", "ufo"] },
+        { "hermetica", ["estanca", "triproof", "sylvania", "ip65", "ip66", "chasis", "t8"] },
+        { "hermeticas", ["estanca", "triproof", "sylvania", "ip65", "ip66", "chasis", "t8"] },
+        { "triproof", ["hermetica", "estanca", "sylvania", "ip65", "ip66"] },
+        { "panel", ["sylvania", "backlit", "slim", "60x60", "downlight", "plafon", "led"] },
+        { "paneles", ["sylvania", "backlit", "slim", "60x60", "downlight", "plafon", "led"] },
+        { "plafon", ["panel", "downlight", "sylvania", "backlit"] },
+        { "downlight", ["ojo", "buey", "embutir", "sylvania", "redondo", "cuadrado"] },
+        { "downlights", ["ojo", "buey", "embutir", "sylvania", "redondo", "cuadrado"] },
+        { "tubo", ["sylvania", "t8", "t5", "vidrio", "policarbonato", "g13", "led"] },
+        { "tubos", ["sylvania", "t8", "t5", "vidrio", "policarbonato", "g13", "led"] },
+        { "alumbrado", ["publico", "vial", "syl-street", "sylvania", "farola", "nema"] },
+        { "vial", ["alumbrado", "syl-street", "sylvania", "publico"] },
+        { "farola", ["alumbrado", "syl-street", "sylvania", "publico"] },
+        { "farolas", ["alumbrado", "syl-street", "sylvania", "publico"] },
+        { "emergencia", ["sylvania", "r1", "salida", "exit", "bateria", "autonoma"] },
+        { "antiexplosion", ["sylsecure", "bc5401", "ul844", "explosion", "proof", "sylvania"] },
+        { "solar", ["fotovoltaico", "syl-street", "syltech", "inversor", "panel", "sylvania"] },
+        { "fotovoltaico", ["solar", "inversor", "mppt", "syltech", "sylvania"] },
+        { "sylvania", ["luminaria", "reflector", "campana", "panel", "tubo", "led", "syl-street", "jeta", "sylveo", "sylsecure", "toledo"] }
     };
 
     /// <summary>
@@ -635,13 +669,14 @@ public class DatabaseService
             {
                 if (SearchSynonyms.TryGetValue(token, out var syns))
                 {
-                    var synTerms = syns.Select(s => $"{s}*").ToList();
-                    synTerms.Insert(0, $"{token}*");
+                    var synTerms = syns.Select(s => s.Contains('-') || s.Contains(' ') ? $"\"{s}\"" : $"{s}*").ToList();
+                    var formattedToken = token.Contains('-') || token.Contains(' ') ? $"\"{token}\"" : $"{token}*";
+                    synTerms.Insert(0, formattedToken);
                     ftsTokens.Add($"({string.Join(" OR ", synTerms)})");
                 }
                 else
                 {
-                    ftsTokens.Add($"{token}*");
+                    ftsTokens.Add(token.Contains('-') || token.Contains(' ') ? $"\"{token}\"" : $"{token}*");
                 }
             }
 
