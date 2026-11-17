@@ -72,7 +72,7 @@ De acuerdo con la guía metodológica de formulación de proyectos 5W+H de la Un
         \node[caja_fin, right=0.4cm of f2] (f3) {Fin 3\\Liberación de tiempo del equipo de ventas para negociaciones de alto volumen.};
 
         % Nivel 2: Objetivo central (centro)
-        \node[caja_obj, below=1.2cm of f2] (obj) {PROPÓSITO CENTRAL\\Desarrollar un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil};
+        \node[caja_obj, below=1.2cm of f2] (obj) {PROPÓSITO CENTRAL\\Desarrollar un agente inteligente para la atención comercial y cotización de materiales eléctricos en Power Electrimk};
 
         % Nivel 3: Medios (abajo)
         \node[caja_medio, below=1.2cm of obj] (m2) {Medio 2\\Normalización e indexación del catálogo multimarca en base embebida SQLite con WAL.};
@@ -223,24 +223,24 @@ En la Figura \ref{fig:arquitectura_completa} se ilustra la arquitectura de compo
     \begin{tikzpicture}[
         node distance=1.6cm,
         caja/.style={rectangle, rounded corners=3pt, draw=blue!70!black, fill=blue!8,
-                     text width=3.2cm, minimum height=1.65cm, align=center, font=\small},
+                     text width=3.4cm, minimum height=1.65cm, align=center, font=\small},
         datos/.style={cylinder, shape border rotate=90, aspect=0.25, draw=green!50!black,
-                      fill=green!8, text width=2.8cm, minimum height=1.65cm, align=center, font=\small},
-        ext/.style={rectangle, draw=orange!80!black, fill=orange!10, text width=3.0cm,
+                      fill=green!8, text width=3.0cm, minimum height=1.65cm, align=center, font=\small},
+        ext/.style={rectangle, draw=orange!80!black, fill=orange!10, text width=3.2cm,
                     minimum height=1.65cm, align=center, font=\small},
         flecha/.style={-{Stealth[length=2.5mm]}, thick},
         etq/.style={font=\fontsize{6.5}{7.5}\selectfont, fill=white, inner sep=1.2pt}
     ]
         % Actores y servicios de borde
-        \node[ext] (cliente) {\textbf{Cliente técnico}\\WhatsApp Mobile/Web\\Consulta comercial / Foto};
+        \node[ext] (cliente) {\textbf{Cliente técnico}\\WhatsApp Web/Móvil\\Consulta o fotografía};
         \node[ext, right=of cliente] (meta) {\textbf{WhatsApp Cloud API}\\Meta Graph API v20+\\Webhook oficial};
         \node[caja, right=of meta] (nginx) {\textbf{Proxy inverso Nginx}\\Certbot TLS 1.3\\{\fontsize{6.5}{7.5}\selectfont agente.powerelectrimk.com}};
         \node[caja, right=of nginx] (api) {\textbf{Servicio .NET 8}\\Runtime Kestrel :5252\\Systemd: agenteventas};
         \node[ext, right=of api] (gemini) {\textbf{Google Gemini API}\\Inferencia Flash\\Free Tier / Pay-per-use};
 
         % Almacenamiento local
-        \node[caja, below=1.8cm of api] (rag) {\textbf{Recuperación Local}\\Búsqueda determinista SQL\\por código, marca y cat.};
-        \node[datos, left=1.3cm of rag] (cat) {\textbf{SQLite (WAL)}\\Catálogo 10 marcas\\Índices brand/cat};
+        \node[caja, below=1.8cm of api] (rag) {\textbf{Recuperación Local}\\Búsqueda determinista SQL\\por código y atributos};
+        \node[datos, left=1.3cm of rag] (cat) {\textbf{SQLite (WAL)}\\Catálogo 613 SKUs\\Schneider y Siemens};
         \node[datos, right=1.3cm of rag] (hist) {\textbf{SQLite (WAL)}\\Historial de chat\\Sesión y prospectos};
 
         % Flujo de mensajes
@@ -284,3 +284,23 @@ En estricto cumplimiento con el criterio de evaluación ABET IV.3 (Ética, Impac
     \item \textbf{Gobernanza y anonimización de datos (LOPDP):} Los conjuntos de datos de prueba, trazas de telemetría y transcripciones experimentales publicadas en el repositorio se someterán a un protocolo riguroso de anonimización irreversible. Los números telefónicos y nombres de personas naturales son sustituidos por identificadores sintéticos disociados (\textit{UUIDs}), garantizando el pleno acatamiento de la Ley Orgánica de Protección de Datos Personales del Ecuador.
     \item \textbf{Guía de reproducibilidad computacional:} El repositorio incluye las directrices técnicas, el archivo \textit{Dockerfile} de compilación multicapa y los procedimientos documentados paso a paso para desplegar el entorno de evaluación sobre cualquier distribución Linux con el runtime de .NET 8 y SQLite preinstalados.
 \end{enumerate}
+
+% -------------------------------------------------------------------------
+% ANEXO 5: CARTA DE AUSPICIO Y VALIDACIÓN EMPRESARIAL (POWER ELECTRIMK)
+% -------------------------------------------------------------------------
+\subsection{Anexo 5: Carta de auspicio y validación diagnóstica en Power Electrimk}
+
+En cumplimiento con las observaciones del tribunal académico respecto a la sustentación documental de la problemática empresarial en la distribuidora comercial de materiales eléctricos (demoras de 2 a 8 horas en cotización manual multimarca y pérdida comercial del 20\% al 35\% por atención diferida), se formaliza la vinculación institucional con la empresa beneficiaria:
+
+\begin{enumerate}
+    \item \textbf{Entidad auspiciante:} Distribuidora Comercial Power Electrimk, especializada en suministros eléctricos industriales y residenciales en la ciudad de Guayaquil.
+    \item \textbf{Alcance de la autorización empresarial:} Certificación formal suscrita por la jefatura comercial que autoriza la recopilación de requerimientos técnicos, la normalización de catálogos y la ejecución de pruebas operativas controladas del agente inteligente en su canal oficial de WhatsApp Business.
+    \item \textbf{Soporte para validación con usuarios:} Compromiso institucional para la participación de los tres asesores comerciales de mostrador y el jefe de ventas en las sesiones de evaluación funcional y pruebas de usabilidad bajo el Modelo de Aceptación Tecnológica (TAM).
+\end{enumerate}
+
+\vspace{0.4cm}
+\begin{center}
+\fbox{\parbox{0.88\textwidth}{\centering\small\itshape
+[Espacio reservado para la incorporación del documento físico firmado y sellado: Carta de Auspicio y Validación de Problemática suscrita por la jefatura comercial de Power Electrimk]
+}}
+\end{center}

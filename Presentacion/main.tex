@@ -58,13 +58,13 @@
 }
 
 % --- Metadatos Oficiales (Fieles al Anteproyecto) ---
-\title[Agente Comercial para Materiales Eléctricos]{Desarrollo de un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil}
+\title[Agente Comercial para Materiales Eléctricos]{Desarrollo de un agente inteligente con recuperación verificable de información técnica para la atención comercial y cotización en Power Electrimk}
 \subtitle{Sustentación de Anteproyecto de Titulación}
 \author[Totoy \& Seminario]{%
   Victor Jesus Totoy Iza \and Rodolfo Damián Seminario Murillo
 }
 \institute[UPS Guayaquil]{
-  \textbf{Tutor:} Ing. Joe Llerena Izquierdo, M.Sc., Ph.D. \\[0.2cm]
+  \textbf{Tutor:} Ing. Ricardo Naranjo Sánchez, PhD. \\[0.2cm]
   Universidad Politécnica Salesiana --- Sede Guayaquil \\
   Carrera de Computación
 }
@@ -190,7 +190,7 @@
 % --- Slide 5: Objetivos del Proyecto ---
 \begin{frame}{Objetivos de Titulación (Taxonomía de Bloom)}
   \begin{block}{Objetivo General (Anteproyecto Sec. 4)}
-    \textbf{Desarrollar} un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, mediante la integración de modelos generativos y recuperación relacional determinista sobre catálogos técnicos para garantizar cotizaciones fácticas en la distribuidora Power Electrimk.
+    \textbf{Desarrollar} un agente inteligente con recuperación verificable de información técnica para la atención comercial y cotización en Power Electrimk, mediante la integración de modelos generativos y recuperación relacional determinista sobre catálogos técnicos estructurados, garantizando cotizaciones consistentes, trazabilidad de clientes y tiempos de respuesta ágiles.
   \end{block}
   
   \vspace{0.15cm}
@@ -208,7 +208,7 @@
     \begin{column}{0.49\textwidth}
       \begin{block}{Pregunta General (PG)}
         \scriptsize
-        ¿En qué medida un agente inteligente para la atención comercial y cotización de materiales eléctricos en Guayaquil, basado en modelos generativos y recuperación relacional determinista, mejora la exactitud de precios, la latencia de respuesta y la eficiencia de recursos computacionales en el proceso de ventas de la distribuidora Power Electrimk?
+        ¿En qué medida un agente inteligente con recuperación verificable de información técnica multimarca, basado en modelos generativos y recuperación relacional determinista sobre SQLite WAL, mejora la exactitud de precios, mitiga las alucinaciones y optimiza la latencia de respuesta P95 en el proceso comercial de la distribuidora Power Electrimk?
       \end{block}
       
       \vspace{0.05cm}
@@ -223,15 +223,15 @@
     \begin{column}{0.49\textwidth}
       \begin{exampleblock}{Hipótesis General (HG)}
         \scriptsize
-        La implementación del agente inteligente con recuperación fáctica local sobre SQLite permite alcanzar una \textbf{exactitud fáctica $\ge 95\%$}, \textbf{tasa de alucinación del $0\%$}, \textbf{latencia P95 $< 4.0$ s} y memoria RAM \textbf{$< 250$ MB} en la nube.
+        La implementación del agente inteligente con recuperación verificable sobre catálogos en SQLite permite alcanzar una \textbf{exactitud fáctica $\ge 95\%$}, \textbf{mitigación de alucinaciones ($H_{\text{rate}} \le 2\%$ en general y $0\%$ en cotización formal por compuerta determinista)}, \textbf{latencia P95 $< 4.0$ s} y memoria RAM \textbf{$< 250$ MB}, validado en batería ampliada de $N=120$ casos.
       \end{exampleblock}
       
       \vspace{0.05cm}
       {\footnotesize \textbf{Hipótesis Específicas:}}
       \begin{itemize}\scriptsize\setlength{\itemsep}{2pt}
-        \item[\textbf{H1.}] Consultas SQL indexadas resueltas en $T_{\text{sql}} < 100$ ms con 100\% de integridad.
+        \item[\textbf{H1.}] Consultas SQL indexadas resueltas en $T_{\text{sql}} < 100$ ms con integridad fáctica.
         \item[\textbf{H2.}] Procesamiento asíncrono en .NET 8 con utilización de RAM $< 250$ MB.
-        \item[\textbf{H3.}] Tasa de alucinación significativamente menor ($H_{\text{rate}} = 0\%$, $p < 0{,}05$) y $Acc_{\text{cot}} \ge 95\%$ vs. modelo sin RAG.
+        \item[\textbf{H3.}] Tasa de alucinación controlada ($H_{\text{rate}} \le 2\%$, $p < 0{,}05$) y $Acc_{\text{cot}} \ge 95\%$ vs. modelo sin recuperación.
       \end{itemize}
     \end{column}
   \end{columns}
