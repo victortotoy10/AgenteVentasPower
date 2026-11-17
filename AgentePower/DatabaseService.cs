@@ -19,7 +19,8 @@ public record ProductRecord(
     string Description,
     string TechnicalSpecs,
     string Application,
-    string Status = "Disponible"
+    string Status = "Disponible",
+    int SearchCount = 0
 )
 {
     // Propiedad de compatibilidad con código previo si es requerida
@@ -113,7 +114,8 @@ public class DatabaseService
                 VALUES ('delete', old.Id, old.Code, old.Name, old.Brand, old.BusinessLine, old.Family, old.Series, old.Description, old.TechnicalSpecs, old.Application);
             END;
 
-            CREATE TRIGGER IF NOT EXISTS trg_products_update AFTER UPDATE ON ProductsCatalog BEGIN
+            DROP TRIGGER IF EXISTS trg_products_update;
+            CREATE TRIGGER trg_products_update AFTER UPDATE OF Code, Name, Brand, BusinessLine, Family, Series, Description, TechnicalSpecs, Application ON ProductsCatalog BEGIN
                 INSERT INTO Products_FTS (Products_FTS, rowid, Code, Name, Brand, BusinessLine, Family, Series, Description, TechnicalSpecs, Application)
                 VALUES ('delete', old.Id, old.Code, old.Name, old.Brand, old.BusinessLine, old.Family, old.Series, old.Description, old.TechnicalSpecs, old.Application);
                 INSERT INTO Products_FTS (rowid, Code, Name, Brand, BusinessLine, Family, Series, Description, TechnicalSpecs, Application)
@@ -121,6 +123,42 @@ public class DatabaseService
             END;
         """;
         cmd.ExecuteNonQuery();
+
+        // 4b. Esquema de Telemetría de Demanda para el Agente Comercial
+        try
+        {
+            using var alterCmd1 = connection.CreateCommand();
+            alterCmd1.CommandText = "ALTER TABLE ProductsCatalog ADD COLUMN SearchCount INTEGER DEFAULT 0;";
+            alterCmd1.ExecuteNonQuery();
+        }
+        catch { }
+
+        try
+        {
+            using var alterCmd2 = connection.CreateCommand();
+            alterCmd2.CommandText = "ALTER TABLE ProductsCatalog ADD COLUMN LastQueriedAt DATETIME;";
+            alterCmd2.ExecuteNonQuery();
+        }
+        catch { }
+
+        using var analyticsCmd = connection.CreateCommand();
+        analyticsCmd.CommandText = """
+            CREATE TABLE IF NOT EXISTS ProductSearchAnalytics (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ProductCode TEXT NOT NULL,
+                Brand TEXT NOT NULL,
+                Family TEXT NOT NULL,
+                Series TEXT,
+                QueryTerm TEXT NOT NULL,
+                CustomerNumber TEXT,
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_analytics_code ON ProductSearchAnalytics (ProductCode);
+            CREATE INDEX IF NOT EXISTS idx_analytics_family ON ProductSearchAnalytics (Family);
+            CREATE INDEX IF NOT EXISTS idx_analytics_brand ON ProductSearchAnalytics (Brand);
+            CREATE INDEX IF NOT EXISTS idx_analytics_created ON ProductSearchAnalytics (CreatedAt);
+        """;
+        analyticsCmd.ExecuteNonQuery();
 
         // 5. Sembrar catálogo inicial verificado de las 6 líneas clave
         SeedCatalogIfEmpty(connection);
@@ -395,7 +433,7 @@ public class DatabaseService
 
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = """
-                SELECT Brand, BusinessLine, Family, Series, Code, Name, Description, TechnicalSpecs, Application, Status
+                SELECT Brand, BusinessLine, Family, Series, Code, Name, Description, TechnicalSpecs, Application, Status, COALESCE(SearchCount, 0)
                 FROM ProductsCatalog
                 WHERE UPPER(Code) = @Code
                 LIMIT 1;
@@ -416,7 +454,8 @@ public class DatabaseService
                     Description: reader.IsDBNull(6) ? "" : reader.GetString(6),
                     TechnicalSpecs: reader.IsDBNull(7) ? "{}" : reader.GetString(7),
                     Application: reader.IsDBNull(8) ? "" : reader.GetString(8),
-                    Status: reader.IsDBNull(9) ? "Disponible" : reader.GetString(9)
+                    Status: reader.IsDBNull(9) ? "Disponible" : reader.GetString(9),
+                    SearchCount: reader.IsDBNull(10) ? 0 : reader.GetInt32(10)
                 );
             }
         }
@@ -486,9 +525,10 @@ public class DatabaseService
 
     /// <summary>
     /// Búsqueda inteligente de alto rendimiento con SQLite FTS5 (Full-Text Search BM25) para Técnicos y Compras.
+    /// Incorpora telemetría de demanda (SearchCount) para priorizar las soluciones más solicitadas por el mercado.
     /// Resuelve consultas complejas en < 2 ms con consumo mínimo de recursos.
     /// </summary>
-    public async Task<List<ProductRecord>> SearchProductsAsync(string query, int limit = 5)
+    public async Task<List<ProductRecord>> SearchProductsAsync(string query, int limit = 5, string? customerNumber = null)
     {
         var results = new List<ProductRecord>();
         if (string.IsNullOrWhiteSpace(query)) return results;
@@ -502,6 +542,7 @@ public class DatabaseService
             if (exactMatch != null)
             {
                 results.Add(exactMatch);
+                _ = Task.Run(() => RecordSearchTelemetryAsync(results, cleanQuery, customerNumber));
                 return results;
             }
         }
@@ -544,18 +585,18 @@ public class DatabaseService
                 }
             }
 
-            // Ensamblar consulta FTS5 con operador OR y ponderación de ranking BM25
+            // Ensamblar consulta FTS5 con operador OR y ponderación de ranking BM25 + Telemetría de Demanda
             var ftsMatchQuery = string.Join(" OR ", ftsTokens);
 
             try
             {
                 await using var cmd = connection.CreateCommand();
                 cmd.CommandText = """
-                    SELECT p.Brand, p.BusinessLine, p.Family, p.Series, p.Code, p.Name, p.Description, p.TechnicalSpecs, p.Application, p.Status
+                    SELECT p.Brand, p.BusinessLine, p.Family, p.Series, p.Code, p.Name, p.Description, p.TechnicalSpecs, p.Application, p.Status, COALESCE(p.SearchCount, 0)
                     FROM Products_FTS f
                     JOIN ProductsCatalog p ON p.Id = f.rowid
                     WHERE Products_FTS MATCH @FtsQuery
-                    ORDER BY rank
+                    ORDER BY rank ASC, p.SearchCount DESC
                     LIMIT @Limit;
                 """;
                 cmd.Parameters.AddWithValue("@FtsQuery", ftsMatchQuery);
@@ -575,7 +616,8 @@ public class DatabaseService
                         Description: reader.IsDBNull(6) ? "" : reader.GetString(6),
                         TechnicalSpecs: reader.IsDBNull(7) ? "{}" : reader.GetString(7),
                         Application: reader.IsDBNull(8) ? "" : reader.GetString(8),
-                        Status: reader.IsDBNull(9) ? "Disponible" : reader.GetString(9)
+                        Status: reader.IsDBNull(9) ? "Disponible" : reader.GetString(9),
+                        SearchCount: reader.IsDBNull(10) ? 0 : reader.GetInt32(10)
                     ));
                 }
             }
@@ -613,9 +655,10 @@ public class DatabaseService
                     }
 
                     fallbackCmd.CommandText = $"""
-                        SELECT Brand, BusinessLine, Family, Series, Code, Name, Description, TechnicalSpecs, Application, Status
+                        SELECT Brand, BusinessLine, Family, Series, Code, Name, Description, TechnicalSpecs, Application, Status, COALESCE(SearchCount, 0)
                         FROM ProductsCatalog
                         WHERE {string.Join(" OR ", whereClauses)}
+                        ORDER BY SearchCount DESC
                         LIMIT @Limit;
                     """;
                     fallbackCmd.Parameters.AddWithValue("@Limit", limit);
@@ -634,7 +677,8 @@ public class DatabaseService
                             Description: fbReader.IsDBNull(6) ? "" : fbReader.GetString(6),
                             TechnicalSpecs: fbReader.IsDBNull(7) ? "{}" : fbReader.GetString(7),
                             Application: fbReader.IsDBNull(8) ? "" : fbReader.GetString(8),
-                            Status: fbReader.IsDBNull(9) ? "Disponible" : fbReader.GetString(9)
+                            Status: fbReader.IsDBNull(9) ? "Disponible" : fbReader.GetString(9),
+                            SearchCount: fbReader.IsDBNull(10) ? 0 : fbReader.GetInt32(10)
                         ));
                     }
                 }
@@ -643,6 +687,12 @@ public class DatabaseService
         catch (Exception ex)
         {
             Console.WriteLine($"[ERROR DB SEARCH] Error general en búsqueda de productos para '{cleanQuery}': {ex.Message}");
+        }
+
+        // 4. Registro Asíncrono de Telemetría de Demanda (Background Task, Cero Latencia)
+        if (results.Count > 0)
+        {
+            _ = Task.Run(() => RecordSearchTelemetryAsync(results, cleanQuery, customerNumber));
         }
 
         return results;
@@ -713,6 +763,175 @@ public class DatabaseService
         catch (Exception ex)
         {
             Console.WriteLine($"[ERROR DB] No se pudo consultar historial: {ex.Message}");
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Telemetría de Demanda: Registra de forma asíncrona la consulta de los productos y familias
+    /// para auto-adaptar la prioridad de recomendación y proporcionar inteligencia de compras a la empresa.
+    /// </summary>
+    public async Task RecordSearchTelemetryAsync(IEnumerable<ProductRecord> products, string queryTerm, string? customerNumber)
+    {
+        try
+        {
+            await using var connection = new SqliteConnection(_connectionString);
+            await connection.OpenAsync();
+            await using var transaction = await connection.BeginTransactionAsync();
+
+            await using var updateCmd = connection.CreateCommand();
+            updateCmd.Transaction = (SqliteTransaction)transaction;
+            updateCmd.CommandText = """
+                UPDATE ProductsCatalog 
+                SET SearchCount = COALESCE(SearchCount, 0) + 1, 
+                    LastQueriedAt = CURRENT_TIMESTAMP 
+                WHERE Code = @Code;
+            """;
+            var codeParam = updateCmd.Parameters.Add("@Code", SqliteType.Text);
+            updateCmd.Prepare();
+
+            await using var insertCmd = connection.CreateCommand();
+            insertCmd.Transaction = (SqliteTransaction)transaction;
+            insertCmd.CommandText = """
+                INSERT INTO ProductSearchAnalytics (ProductCode, Brand, Family, Series, QueryTerm, CustomerNumber)
+                VALUES (@ProductCode, @Brand, @Family, @Series, @QueryTerm, @CustomerNumber);
+            """;
+            insertCmd.Parameters.Add("@ProductCode", SqliteType.Text);
+            insertCmd.Parameters.Add("@Brand", SqliteType.Text);
+            insertCmd.Parameters.Add("@Family", SqliteType.Text);
+            insertCmd.Parameters.Add("@Series", SqliteType.Text);
+            insertCmd.Parameters.Add("@QueryTerm", SqliteType.Text);
+            insertCmd.Parameters.Add("@CustomerNumber", SqliteType.Text);
+            insertCmd.Prepare();
+
+            foreach (var prod in products)
+            {
+                codeParam.Value = prod.Code;
+                await updateCmd.ExecuteNonQueryAsync();
+
+                insertCmd.Parameters["@ProductCode"].Value = prod.Code;
+                insertCmd.Parameters["@Brand"].Value = prod.Brand;
+                insertCmd.Parameters["@Family"].Value = prod.Family;
+                insertCmd.Parameters["@Series"].Value = (object?)prod.Series ?? DBNull.Value;
+                insertCmd.Parameters["@QueryTerm"].Value = queryTerm;
+                insertCmd.Parameters["@CustomerNumber"].Value = (object?)customerNumber ?? DBNull.Value;
+                await insertCmd.ExecuteNonQueryAsync();
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AVISO TELEMETRÍA] Error no crítico al registrar demanda: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Devuelve los productos más consultados / demandados por los clientes en WhatsApp.
+    /// </summary>
+    public async Task<List<Dictionary<string, object>>> GetTopDemandedProductsAsync(int limit = 10)
+    {
+        var list = new List<Dictionary<string, object>>();
+        try
+        {
+            await using var connection = new SqliteConnection(_connectionString);
+            await connection.OpenAsync();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT Code, Name, Brand, Family, Series, SearchCount, LastQueriedAt
+                FROM ProductsCatalog
+                WHERE SearchCount > 0
+                ORDER BY SearchCount DESC, LastQueriedAt DESC
+                LIMIT @Limit;
+            """;
+            cmd.Parameters.AddWithValue("@Limit", limit);
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                list.Add(new Dictionary<string, object>
+                {
+                    ["Code"] = reader.GetString(0),
+                    ["Name"] = reader.GetString(1),
+                    ["Brand"] = reader.GetString(2),
+                    ["Family"] = reader.GetString(3),
+                    ["Series"] = reader.IsDBNull(4) ? "" : reader.GetString(4),
+                    ["SearchCount"] = reader.GetInt32(5),
+                    ["LastQueriedAt"] = reader.IsDBNull(6) ? "" : reader.GetString(6)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR ANALYTICS] {ex.Message}");
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Devuelve el resumen de demanda agregada por Marca.
+    /// </summary>
+    public async Task<List<Dictionary<string, object>>> GetBrandDemandSummaryAsync()
+    {
+        var list = new List<Dictionary<string, object>>();
+        try
+        {
+            await using var connection = new SqliteConnection(_connectionString);
+            await connection.OpenAsync();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT Brand, COUNT(*) AS TotalConsultas, COUNT(DISTINCT ProductCode) AS ProductosDistintos
+                FROM ProductSearchAnalytics
+                GROUP BY Brand
+                ORDER BY TotalConsultas DESC;
+            """;
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                list.Add(new Dictionary<string, object>
+                {
+                    ["Brand"] = reader.GetString(0),
+                    ["TotalConsultas"] = reader.GetInt32(1),
+                    ["ProductosDistintos"] = reader.GetInt32(2)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR ANALYTICS BRANDS] {ex.Message}");
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Devuelve el resumen de demanda agregada por Familia de productos.
+    /// </summary>
+    public async Task<List<Dictionary<string, object>>> GetFamilyDemandSummaryAsync()
+    {
+        var list = new List<Dictionary<string, object>>();
+        try
+        {
+            await using var connection = new SqliteConnection(_connectionString);
+            await connection.OpenAsync();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT Family, COUNT(*) AS TotalConsultas
+                FROM ProductSearchAnalytics
+                GROUP BY Family
+                ORDER BY TotalConsultas DESC;
+            """;
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                list.Add(new Dictionary<string, object>
+                {
+                    ["Family"] = reader.GetString(0),
+                    ["TotalConsultas"] = reader.GetInt32(1)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR ANALYTICS FAMILIES] {ex.Message}");
         }
         return list;
     }

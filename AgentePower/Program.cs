@@ -315,8 +315,8 @@ async Task<string> ConsultarGemini(
 
     try
     {
-        // 2. Buscar productos coincidentes en el Catálogo Multimarca (RAG Local)
-        var productos = await dbService.SearchProductsAsync(mensajeSanitizado, limit: 6);
+        // 2. Buscar productos coincidentes en el Catálogo Multimarca (RAG Local con Telemetría de Demanda)
+        var productos = await dbService.SearchProductsAsync(mensajeSanitizado, limit: 6, customerNumber: numeroCliente);
 
         // 3. Generar Canary Token criptográfico efímero para detectar fugas del System Prompt
         var canaryToken = securityService.GenerateCanaryToken();
@@ -606,6 +606,23 @@ async Task EnviarMensajeWhatsApp(string numeroDestino, string mensajeBody)
         Console.WriteLine($"[EXCEPCIÓN HTTP ENVIANDO MENSAJE] Error: {ex.Message}");
     }
 }
+
+app.MapGet("/api/analytics/demanda", async (DatabaseService db) =>
+{
+    var topProducts = await db.GetTopDemandedProductsAsync(20);
+    var brands = await db.GetBrandDemandSummaryAsync();
+    var families = await db.GetFamilyDemandSummaryAsync();
+    return Results.Ok(new
+    {
+        Generado = DateTime.UtcNow,
+        Descripcion = "Telemetría de Demanda Real en WhatsApp para Inteligencia de Inventario y Compras - Power ElectriMK",
+        TopProductos = topProducts,
+        DemandaPorMarca = brands,
+        DemandaPorFamilia = families
+    });
+})
+.WithName("GetDemandAnalytics")
+.WithSummary("Consulta métricas de demanda y rotación comercial registradas por el agente");
 
 app.Run();
 
